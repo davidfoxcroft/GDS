@@ -1,0 +1,689 @@
+setwd("~/Dropbox/Coding/GDS")
+library(tidyverse)
+library(lme4)#
+library(lattice)#
+library(here)#
+library(rstanarm)#
+library(rstan)#
+library(parallel)#
+library(plotly)
+Sys.setenv("plotly_username" = "foxcroft")
+Sys.setenv("plotly_api_key" = "K1VgrA27Zers3vjQejUX")
+options(mc.cores = parallel::detectCores())
+rstan_options(auto_write = TRUE)
+chains <- 4
+cores <- chains
+iter <- 2000
+warmup <- 1000
+seed <- sqrt(1963)
+data <- read_csv("GDS 2018 Alcohol labels for David.csv")
+glimpse(data)
+table(data$ncountry)#
+table(data$alcheartnew)#
+table(data$alclivernew)#
+table(data$alccancernew)#
+table(data$alcfatnew)#
+table(data$alcfreedaysnew)#
+table(data$alcmythnew)#
+table(data$alcviolencenew)#
+#
+data$awareness <- data$alcheartnew + #
+  data$alclivernew + #
+  data$alccancernew +#
+  data$alcfatnew +#
+  data$alcfreedaysnew + #
+  data$alcmythnew + #
+  data$alcviolencenew#
+table(data$awareness)#
+#
+table(data$age, exclude = NULL)#
+table(data$sex, exclude = NULL)#
+table(data$AUDIT_SCORE, exclude = NULL)#
+table(data$pdthighqual, exclude = NULL)#
+table(data$pdtincome, exclude = NULL)#
+table(data$year_illegal, exclude = NULL)#
+table(data$freq_tobacco, exclude = NULL)
+out1 <- lme4::glmer(alcheartnew ~ 1 + scale(age) + sex + scale(AUDIT_SCORE) + (1 | ncountry),
+out1 <- lme4::glmer(alcheartnew ~ 1 + scale(age) + sex + scale(AUDIT_SCORE) + (1 | ncountry),
+data = data,
+family = binomial(link = logit))
+)
+out1 <- lme4::glmer(alcheartnew ~ 1 + scale(age) + sex + scale(AUDIT_SCORE) + (1 | ncountry), #
+                    data = data,#
+                    family = poisson(link = log))
+summary(out1)
+ggCaterpillar <- function(re, QQ=TRUE, likeDotplot=TRUE) {#
+  require(ggplot2)#
+  f <- function(x) {#
+    pv   <- attr(x, "postVar")#
+    cols <- 1:(dim(pv)[1])#
+    se   <- unlist(lapply(cols, function(i) sqrt(pv[i, i, ])))#
+    ord  <- unlist(lapply(x, order)) + rep((0:(ncol(x) - 1)) * nrow(x), each=nrow(x))#
+    pDf  <- data.frame(y=unlist(x)[ord],#
+                       ci=1.96*se[ord],#
+                       nQQ=rep(qnorm(ppoints(nrow(x))), ncol(x)),#
+                       ID=factor(rep(rownames(x), ncol(x))[ord], levels=rownames(x)[ord]),#
+                       ind=gl(ncol(x), nrow(x), labels=names(x)))#
+    if(QQ) {  ## normal QQ-plot#
+      p <- ggplot(pDf, aes(nQQ, y))#
+      p <- p + facet_wrap(~ ind, scales="free")#
+      p <- p + xlab("Standard normal quantiles") + ylab("Random effect quantiles")#
+    } else {  ## caterpillar dotplot#
+      p <- ggplot(pDf, aes(ID, y)) + coord_flip()#
+      if(likeDotplot) {  ## imitate dotplot() -> same scales for random effects#
+        p <- p + facet_wrap(~ ind)#
+      } else {           ## different scales for random effects#
+        p <- p + facet_grid(ind ~ ., scales="free_y")#
+      }#
+      p <- p + xlab("Levels") + ylab("Random effects")#
+    }#
+    p <- p + theme(legend.position="none")#
+    p <- p + geom_hline(yintercept=0)#
+    p <- p + geom_errorbar(aes(ymin=y-ci, ymax=y+ci), width=0, colour="black")#
+    p <- p + geom_point(size=1.0, colour="blue") #
+    return(p)#
+  }#
+  lapply(re, f)#
+}
+ggCaterpillar(lme4::ranef(out1, #
+                          condVar = TRUE), #
+                          QQ = FALSE, #
+                          likeDotplot = FALSE)
+out1a <- lme4::glmer(awareness ~ 1 + scale(age) + sex + scale(AUDIT_SCORE) + (1 | ncountry), #
+                    data = data,#
+                    family = poisson(link = log))
+summary(out1a)
+ggCaterpillar(lme4::ranef(out1a, #
+                          condVar = TRUE), #
+              QQ = FALSE, #
+              likeDotplot = FALSE)
+out3 <- rstanarm::stan_glmer(awareness ~ 1 + age + sex + AUDIT_SCORE + (1 | ncountry), #
+                             data = data,#
+                             family = poisson(link = log),#
+                             prior = student_t(df = 7), #
+                             prior_intercept = student_t(df = 7),#
+                             chains = chains, #
+                             cores = cores, #
+                             warmup = warmup,#
+                             iter = iter,#
+                             seed = seed)#
+#
+summary(out3)#
+print(out3)#
+#launch_shinystan(out3, ppd = FALSE) #slow, use ppd = FALSE to speed up#
+rstanarm::ranef(out3)#
+#
+rstan::traceplot(out3$stanfit, inc_warmup = TRUE)#
+res3 <- as.data.frame(ranef(out3))#
+res3 <- cbind(res3$grp,round(res3[c("condval")],3))#
+ci90 <- posterior_interval(out3, prob = 0.90, #
+                           regex_pars = "^[b]")#
+ci50 <- posterior_interval(out3, prob = 0.50, #
+                           regex_pars = "^[b]")#
+res3 <- cbind(res3,round(ci90, 3),round(ci50, 3))#
+res3 <- res3[,c(1,2,3,5,6,4)]#
+str(res3)#
+rownames(res3) <- NULL#
+res3#
+colnames(res3) <- c("country","median","lowest","low","high","highest")#
+res3a <- cbind(res3[,c(1)],exp(res3[,c(2:6)]))#
+colnames(res3a) <- c("country","median","lowest","low","high","highest")#
+#
+p3 <- ggplot(res3a, aes(x = median, y = country)) + #
+  geom_errorbarh(aes(xmax = high, xmin = low, size = 1, colour = 5, alpha = .8#
+                     , height = .00)) +#
+  geom_errorbarh(aes(xmax = highest, xmin = lowest, colour = 1, alpha = .5, height = .00)) + #
+  geom_point(colour = "red", size = 1.5) +#
+  geom_vline(xintercept = 1, alpha = .6) +#
+  theme(legend.position = "none") +#
+  ylab(NULL) + #
+  xlab("Country specific intercept relative to overall average") #
+# e.g. if Columbia value is 1.38 this indicates that average in Columbia is 38% higher than the overall average across all countries#
+#
+p3#
+p4 <- plotly::ggplotly(p3)#
+p4#
+# plotly::orca(p4, "gds-plot.png") # don't use - better pic saving from browser#
+#
+# observed data ratios for comparison with model#
+colombia <- mean(data$awareness[data$ncountry == 'Colombia'])#
+finland <- mean(data$awareness[data$ncountry == 'Finland'])#
+colombia / mean(data$awareness)#
+finland / mean(data$awareness)#
+#bayesian GLMM with total 'less' score across 7 vars --- #
+#
+table(data$alcheartless)#
+table(data$alcliverless)#
+table(data$alccancerless)#
+table(data$alcfatless)#
+table(data$alcfreedaysless)#
+table(data$alcmythless)#
+table(data$alcviolenceless)#
+#
+data$alcheartless <- car::recode(data$alcheartless, "0=0; 1=2; 2=1")#
+data$alcliverless <- car::recode(data$alcliverless, "0=0; 1=2; 2=1")#
+data$alccancerless <- car::recode(data$alccancerless, "0=0; 1=2; 2=1")#
+data$alcfatless <- car::recode(data$alcfatless, "0=0; 1=2; 2=1")#
+data$alcfreedaysless <- car::recode(data$alcfreedaysless, "0=0; 1=2; 2=1")#
+data$alcmythless <- car::recode(data$alcmythless, "0=0; 1=2; 2=1")#
+data$alcviolenceless <- car::recode(data$alcviolenceless, "0=0; 1=2; 2=1")#
+#
+table(data$alcheartless)#
+table(data$alcliverless)#
+table(data$alccancerless)#
+table(data$alcfatless)#
+table(data$alcfreedaysless)#
+table(data$alcmythless)#
+table(data$alcviolenceless)#
+#
+data$less <- data$alcheartless +#
+  data$alcliverless + #
+  data$alccancerless +#
+  data$alcfatless +#
+  data$alcfreedaysless +#
+  data$alcmythless +#
+  data$alcviolenceless#
+table(data$less)#
+hist(data$less)#
+data$invless <- 15 - data$less # invert var for analysis#
+table(data$invless)#
+hist(data$invless)#
+#
+# lme4 first for comparison#
+out1b <- lme4::glmer(invless ~ 1 + scale(age) + sex + scale(AUDIT_SCORE) + (1 | ncountry), #
+                     data = data,#
+                     family = poisson(link = "log"))#
+summary(out1b)#
+plot(out1b)#
+ggCaterpillar(lme4::ranef(out1b, #
+                          condVar = TRUE), #
+              QQ = FALSE, #
+              likeDotplot = FALSE) #
+out4 <- rstanarm::stan_glmer(invless ~ 1 + age + sex + AUDIT_SCORE + (1 | ncountry), #
+                             data = data,#
+                             family = poisson(link = log),#
+                             prior = student_t(df = 7), #
+                             prior_intercept = student_t(df = 7),#
+                             chains = chains, #
+                             cores = cores, #
+                             warmup = warmup,#
+                             iter = iter,#
+                             seed = seed)#
+summary(out4)#
+print(out4)#
+#launch_shinystan(out4, ppd = FALSE) #slow, use ppd = FALSE to speed up#
+rstanarm::ranef(out4)#
+#
+rstan::traceplot(out4$stanfit, inc_warmup = TRUE)#
+res4 <- as.data.frame(ranef(out4))#
+res4 <- cbind(res4$grp,round(res4[c("condval")],3))#
+ci90 <- posterior_interval(out4, prob = 0.90, #
+                           regex_pars = "^[b]")#
+ci50 <- posterior_interval(out4, prob = 0.50, #
+                           regex_pars = "^[b]")#
+res4 <- cbind(res4,round(ci90, 3),round(ci50, 3))#
+res4 <- res4[,c(1,2,3,5,6,4)]#
+str(res4)#
+rownames(res4) <- NULL#
+res4#
+colnames(res4) <- c("country","median","lowest","low","high","highest")#
+res4a <- cbind(res4[,c(1)],exp(res4[,c(2:6)]))#
+colnames(res4a) <- c("country","median","lowest","low","high","highest")#
+#
+p5 <- ggplot(res4a, aes(x = median, y = country)) + #
+  geom_errorbarh(aes(xmax = high, xmin = low, size = 1, colour = 5, alpha = .8#
+                     , height = .00)) +#
+  geom_errorbarh(aes(xmax = highest, xmin = lowest, colour = 1, alpha = .5, height = .00)) + #
+  geom_point(colour = "red", size = 1.5) +#
+  geom_vline(xintercept = 1, alpha = .6) +#
+  theme(legend.position = "none") +#
+  ylab(NULL) + #
+  xlab("Country specific intercept relative to overall average") #
+# e.g. if Columbia value is 1.38 this indicates that average in Columbia is 38% higher than the overall average across all countries#
+#
+p5#
+p6 <- plotly::ggplotly(p5)#
+p6#
+# plotly::orca(p4, "gds-plot.png") # don't use - better pic saving from browser#
+#
+# observed data ratios for comparison with model#
+colombia <- mean(data$less[data$ncountry == 'Colombia'])#
+finland <- mean(data$less[data$ncountry == 'Finland'])#
+colombia / mean(data$less)#
+finland / mean(data$less)#
+#bayesian GLMM with total 'relevance' score across 7 vars --- #
+#
+table(data$alcheartrelevance)#
+table(data$alcliverrelevance)#
+table(data$alccancerrelevance)#
+table(data$alcfatrelevance)#
+table(data$alcfreedaysrelevance)#
+table(data$alcmythrelevance)#
+table(data$alcviolencerelevance)#
+#
+data$relevance <- data$alcheartrelevance +#
+  data$alcliverrelevance + #
+  data$alccancerrelevance +#
+  data$alcfatrelevance +#
+  data$alcfreedaysrelevance +#
+  data$alcmythrelevance +#
+  data$alcviolencerelevance#
+table(data$relevance)#
+hist(data$relevance)#
+#
+# lme4 first for comparison#
+out1c <- lme4::glmer(relevance ~ 1 + scale(age) + sex + scale(AUDIT_SCORE) + (1 | ncountry), #
+                     data = data,#
+                     family = poisson(link = "log"))#
+summary(out1c)#
+plot(out1c)#
+ggCaterpillar(lme4::ranef(out1c, #
+                          condVar = TRUE), #
+              QQ = FALSE, #
+              likeDotplot = FALSE) #
+out5 <- rstanarm::stan_glmer(relevance ~ 1 + age + sex + AUDIT_SCORE + (1 | ncountry), #
+                             data = data,#
+                             family = poisson(link = log),#
+                             prior = student_t(df = 7), #
+                             prior_intercept = student_t(df = 7),#
+                             chains = chains, #
+                             cores = cores, #
+                             warmup = warmup,#
+                             iter = iter,#
+                             seed = seed)#
+summary(out5)#
+print(out5)#
+#launch_shinystan(out5, ppd = FALSE) #slow, use ppd = FALSE to speed up#
+rstanarm::ranef(out5)#
+#
+rstan::traceplot(out5$stanfit, inc_warmup = TRUE)#
+res5 <- as.data.frame(ranef(out5))#
+res5 <- cbind(res5$grp,round(res5[c("condval")],3))#
+ci90 <- posterior_interval(out5, prob = 0.90, #
+                           regex_pars = "^[b]")#
+ci50 <- posterior_interval(out5, prob = 0.50, #
+                           regex_pars = "^[b]")#
+res5 <- cbind(res5,round(ci90, 3),round(ci50, 3))#
+res5 <- res5[,c(1,2,3,5,6,4)]#
+str(res5)#
+rownames(res5) <- NULL#
+res5#
+colnames(res5) <- c("country","median","lowest","low","high","highest")#
+res5a <- cbind(res5[,c(1)],exp(res5[,c(2:6)]))#
+colnames(res5a) <- c("country","median","lowest","low","high","highest")#
+#
+p7 <- ggplot(res5a, aes(x = median, y = country)) + #
+  geom_errorbarh(aes(xmax = high, xmin = low, size = 1, colour = 5, alpha = .8#
+                     , height = .00)) +#
+  geom_errorbarh(aes(xmax = highest, xmin = lowest, colour = 1, alpha = .5, height = .00)) + #
+  geom_point(colour = "red", size = 1.5) +#
+  geom_vline(xintercept = 1, alpha = .6) +#
+  theme(legend.position = "none") +#
+  ylab(NULL) + #
+  xlab("Country specific intercept relative to overall average") #
+# e.g. if Columbia value is 1.38 this indicates that average in Columbia is 38% higher than the overall average across all countries#
+#
+p7#
+p8 <- plotly::ggplotly(p7)#
+p8#
+# plotly::orca(p8, "gds-plot.png") # don't use - better pic saving from browser#
+#
+# observed data ratios for comparison with model#
+colombia <- mean(data$relevance[data$ncountry == 'Colombia'])#
+israel <- mean(data$relevance[data$ncountry == 'Israel'])#
+colombia / mean(data$relevance)#
+israel / mean(data$relevance)#
+#bayesian GLMM with total 'less' score across 7 vars --- #
+#
+table(data$alcheartless) # check why none coded as '3'#
+table(data$alcliverless)#
+table(data$alccancerless)#
+table(data$alcfatless)#
+table(data$alcfreedaysless)#
+table(data$alcmythless)#
+table(data$alcviolenceless)#
+#
+data$alcheartless <- car::recode(data$alcheartless, "0=0; 3=1; 2=2; 1=3")#
+data$alcliverless <- car::recode(data$alcliverless, "0=0; 3=1; 2=2; 1=3")#
+data$alccancerless <- car::recode(data$alccancerless, "0=0; 3=1; 2=2; 1=3")#
+data$alcfatless <- car::recode(data$alcfatless, "0=0; 3=1; 2=2; 1=3")#
+data$alcfreedaysless <- car::recode(data$alcfreedaysless, "0=0; 3=1; 2=2; 1=3")#
+data$alcmythless <- car::recode(data$alcmythless, "0=0; 3=1; 2=2; 1=3")#
+data$alcviolenceless <- car::recode(data$alcviolenceless, "0=0; 3=1; 2=2; 1=3")#
+#
+table(data$alcheartless)#
+table(data$alcliverless)#
+table(data$alccancerless)#
+table(data$alcfatless)#
+table(data$alcfreedaysless)#
+table(data$alcmythless)#
+table(data$alcviolenceless)#
+#
+data$less <- data$alcheartless +#
+  data$alcliverless + #
+  data$alccancerless +#
+  data$alcfatless +#
+  data$alcfreedaysless +#
+  data$alcmythless +#
+  data$alcviolenceless#
+table(data$less)#
+hist(data$less)#
+#
+# lme4 first for comparison#
+out1d <- lme4::glmer(less ~ 1 + scale(age) + sex + scale(AUDIT_SCORE) + (1 | ncountry), #
+                     data = data,#
+                     family = poisson(link = "log"))#
+summary(out1d)#
+plot(out1d)#
+ggCaterpillar(lme4::ranef(out1d, #
+                          condVar = TRUE), #
+              QQ = FALSE, #
+              likeDotplot = FALSE) #
+#
+out5 <- rstanarm::stan_glmer(less ~ 1 + age + sex + AUDIT_SCORE + (1 | ncountry), #
+                             data = data,#
+                             family = poisson(link = log),#
+                             prior = student_t(df = 7), #
+                             prior_intercept = student_t(df = 7),#
+                             chains = chains, #
+                             cores = cores, #
+                             warmup = warmup,#
+                             iter = iter,#
+                             seed = seed)#
+summary(out5)#
+print(out5)#
+#launch_shinystan(out5, ppd = FALSE) #slow, use ppd = FALSE to speed up#
+rstanarm::ranef(out5)#
+#
+rstan::traceplot(out5$stanfit, inc_warmup = TRUE)#
+res5 <- as.data.frame(ranef(out5))#
+res5 <- cbind(res5$grp,round(res5[c("condval")],3))#
+ci90 <- posterior_interval(out5, prob = 0.90, #
+                           regex_pars = "^[b]")#
+ci50 <- posterior_interval(out5, prob = 0.50, #
+                           regex_pars = "^[b]")#
+res5 <- cbind(res5,round(ci90, 3),round(ci50, 3))#
+res5 <- res5[,c(1,2,3,5,6,4)]#
+str(res5)#
+rownames(res5) <- NULL#
+res5#
+colnames(res5) <- c("country","median","lowest","low","high","highest")#
+res5a <- cbind(res5[,c(1)],exp(res5[,c(2:6)]))#
+colnames(res5a) <- c("country","median","lowest","low","high","highest")#
+#
+p9 <- ggplot(res5a, aes(x = median, y = country)) + #
+  geom_errorbarh(aes(xmax = high, xmin = low, size = 1, colour = 5, alpha = .8#
+                     , height = .00)) +#
+  geom_errorbarh(aes(xmax = highest, xmin = lowest, colour = 1, alpha = .5, height = .00)) + #
+  geom_point(colour = "red", size = 1.5) +#
+  geom_vline(xintercept = 1, alpha = .6) +#
+  theme(legend.position = "none") +#
+  ylab(NULL) + #
+  xlab("Country specific intercept relative to overall average") #
+# e.g. if Columbia value is 1.38 this indicates that average in Columbia is 38% higher than the overall average across all countries#
+#
+p9#
+p10 <- plotly::ggplotly(p9)#
+p10#
+# plotly::orca(p4, "gds-plot.png") # don't use - better pic saving from browser#
+#
+# observed data ratios for comparison with model#
+colombia <- mean(data$less[data$ncountry == 'Colombia'])#
+israel <- mean(data$less[data$ncountry == 'Israel'])#
+colombia / mean(data$less)#
+israel / mean(data$less)
+p10
+p4
+p4
+p4#
+p6#
+p8#
+p10
+summary(out4)
+table(data$alcheartbelieve)#
+table(data$alcliverbelieve)#
+table(data$alccancerbelieve)#
+table(data$alcfatbelieve)#
+table(data$alcfreedaysbelieve)#
+table(data$alcmythbelieve)#
+table(data$alcviolencebelieve)
+data$alcheartbelieve <- car::recode(data$alcheartbelieve, "0=0; 1=2; 2=1")#
+data$alcliverbelieve <- car::recode(data$alcliverbelieve, "0=0; 1=2; 2=1")#
+data$alccancerbelieve <- car::recode(data$alccancerbelieve, "0=0; 1=2; 2=1")#
+data$alcfatbelieve <- car::recode(data$alcfatbelieve, "0=0; 1=2; 2=1")#
+data$alcfreedaysbelieve <- car::recode(data$alcfreedaysbelieve, "0=0; 1=2; 2=1")#
+data$alcmythbelieve <- car::recode(data$alcmythbelieve, "0=0; 1=2; 2=1")#
+data$alcviolencebelieve <- car::recode(data$alcviolencebelieve, "0=0; 1=2; 2=1")#
+#
+table(data$alcheartbelieve)#
+table(data$alcliverbelieve)#
+table(data$alccancerbelieve)#
+table(data$alcfatbelieve)#
+table(data$alcfreedaysbelieve)#
+table(data$alcmythbelieve)#
+table(data$alcviolencebelieve)#
+#
+data$less <- data$alcheartbelieve +#
+  data$alcliverbelieve + #
+  data$alccancerbelieve +#
+  data$alcfatbelieve +#
+  data$alcfreedaysbelieve +#
+  data$alcmythbelieve +#
+  data$alcviolencebelieve#
+table(data$believe)#
+hist(data$believe)#
+data$invbelieve <- 15 - data$believe # invert var for analysis#
+table(data$invbelieve)#
+hist(data$invbelieve)
+data$believe <- data$alcheartbelieve +#
+  data$alcliverbelieve + #
+  data$alccancerbelieve +#
+  data$alcfatbelieve +#
+  data$alcfreedaysbelieve +#
+  data$alcmythbelieve +#
+  data$alcviolencebelieve#
+table(data$believe)#
+hist(data$believe)#
+data$invbelieve <- 15 - data$believe # invert var for analysis#
+table(data$invbelieve)#
+hist(data$invbelieve)
+out1b <- lme4::glmer(invbelieve ~ 1 + scale(age) + sex + scale(AUDIT_SCORE) + (1 | ncountry), #
+                     data = data,#
+                     family = poisson(link = "log"))
+summary(out1b)#
+plot(out1b)#
+ggCaterpillar(lme4::ranef(out1b, #
+                          condVar = TRUE), #
+              QQ = FALSE, #
+              likeDotplot = FALSE)
+out4 <- rstanarm::stan_glmer(invbelieve ~ 1 + age + sex + AUDIT_SCORE + (1 | ncountry), #
+                             data = data,#
+                             family = poisson(link = log),#
+                             prior = student_t(df = 7), #
+                             prior_intercept = student_t(df = 7),#
+                             chains = chains, #
+                             cores = cores, #
+                             warmup = warmup,#
+                             iter = iter,#
+                             seed = seed)#
+summary(out4)#
+print(out4)#
+#launch_shinystan(out4, ppd = FALSE) #slow, use ppd = FALSE to speed up#
+rstanarm::ranef(out4)#
+#
+rstan::traceplot(out4$stanfit, inc_warmup = TRUE)#
+res4 <- as.data.frame(ranef(out4))#
+res4 <- cbind(res4$grp,round(res4[c("condval")],3))#
+ci90 <- posterior_interval(out4, prob = 0.90, #
+                           regex_pars = "^[b]")#
+ci50 <- posterior_interval(out4, prob = 0.50, #
+                           regex_pars = "^[b]")#
+res4 <- cbind(res4,round(ci90, 3),round(ci50, 3))#
+res4 <- res4[,c(1,2,3,5,6,4)]#
+str(res4)#
+rownames(res4) <- NULL#
+res4#
+colnames(res4) <- c("country","median","lowest","low","high","highest")#
+res4a <- cbind(res4[,c(1)],exp(res4[,c(2:6)]))#
+colnames(res4a) <- c("country","median","lowest","low","high","highest")#
+#
+p5 <- ggplot(res4a, aes(x = median, y = country)) + #
+  geom_errorbarh(aes(xmax = high, xmin = low, size = 1, colour = 5, alpha = .8#
+                     , height = .00)) +#
+  geom_errorbarh(aes(xmax = highest, xmin = lowest, colour = 1, alpha = .5, height = .00)) + #
+  geom_point(colour = "red", size = 1.5) +#
+  geom_vline(xintercept = 1, alpha = .6) +#
+  theme(legend.position = "none") +#
+  ylab(NULL) + #
+  xlab("Country specific intercept relative to overall average") #
+# e.g. if Columbia value is 1.38 this indicates that average in Columbia is 38% higher than the overall average across all countries#
+#
+p5#
+p6 <- plotly::ggplotly(p5)#
+p6#
+# plotly::orca(p4, "gds-plot.png") # don't use - better pic saving from browser#
+#
+# observed data ratios for comparison with model#
+colombia <- mean(data$believe[data$ncountry == 'Colombia'])#
+finland <- mean(data$believe[data$ncountry == 'Finland'])#
+colombia / mean(data$believe)#
+finland / mean(data$believe)
+p4#
+p6#
+p8#
+p10
+par(mfrow=c(2,2))
+par(mfrow=c(2,2))
+p4
+par(mfrow=c(2,2))#
+p4#
+p6#
+p8#
+p10
+grid.arrange(p4, p6, p8, p10, nrow = 2)
+gridExtra ::grid.arrange(p4, p6, p8, p10, nrow = 2)
+gridExtra ::grid.arrange(p3, p5, p7, p9, nrow = 2)
+plotly::ggplotly(gridExtra ::grid.arrange(p3, p5, p7, p9, nrow = 2))
+plotly::subplot(p4, p6, p8, p10, nrows = 2, margin = 0.04, heights = c(0.5, 0.5))
+plotly::subplot(p4, p6, p8, p10, nrows = 2, margin = 0.1, heights = c(0.5, 0.5))
+plotly::subplot(p4, p6, p8, p10, nrows = 2, margin = 0.06, heights = c(0.5, 0.5))
+plotly::subplot(p4, p6, p8, p10, nrows = 2, margin = 0.07, heights = c(0.5, 0.5))
+plotly::subplot(p4, p6, p8, p10, nrows = 2, margin = 0.08, heights = c(0.5, 0.5))
+plotly::subplot(p4, p6, p8, p10, nrows = 2, margin = 0.08, heights = c(0.6, 0.6))
+subp <- plotly::subplot(p4, p6, p8, p10, nrows = 2, margin = 0.08, heights = c(0.5, 0.5))
+chart_link <- api_create(subp, filename = "GDS-alcinfo")
+chart_link
+saveRDS(out3,"GDS_awareness_stanresults.RDS")
+saveRDS(out4,"GDS_believe_stanresults.RDS")
+saveRDS(out5,"GDS_relevance_stanresults.RDS")
+out5 <- rstanarm::stan_glmer(relevance ~ 1 + age + sex + AUDIT_SCORE + (1 | ncountry), #
+                             data = data,#
+                             family = poisson(link = log),#
+                             prior = student_t(df = 7), #
+                             prior_intercept = student_t(df = 7),#
+                             chains = chains, #
+                             cores = cores, #
+                             warmup = warmup,#
+                             iter = iter,#
+                             seed = seed)#
+#
+saveRDS(out5,"GDS_relevance_stanresults.RDS")#
+summary(out5)#
+print(out5)#
+#launch_shinystan(out5, ppd = FALSE) #slow, use ppd = FALSE to speed up#
+rstanarm::ranef(out5)#
+#
+rstan::traceplot(out5$stanfit, inc_warmup = TRUE)#
+res5 <- as.data.frame(ranef(out5))#
+res5 <- cbind(res5$grp,round(res5[c("condval")],3))#
+ci90 <- posterior_interval(out5, prob = 0.90, #
+                           regex_pars = "^[b]")#
+ci50 <- posterior_interval(out5, prob = 0.50, #
+                           regex_pars = "^[b]")#
+res5 <- cbind(res5,round(ci90, 3),round(ci50, 3))#
+res5 <- res5[,c(1,2,3,5,6,4)]#
+str(res5)#
+rownames(res5) <- NULL#
+res5#
+colnames(res5) <- c("country","median","lowest","low","high","highest")#
+res5a <- cbind(res5[,c(1)],exp(res5[,c(2:6)]))#
+colnames(res5a) <- c("country","median","lowest","low","high","highest")#
+#
+p7 <- ggplot(res5a, aes(x = median, y = country)) + #
+  geom_errorbarh(aes(xmax = high, xmin = low, size = 1, colour = 5, alpha = .8#
+                     , height = .00)) +#
+  geom_errorbarh(aes(xmax = highest, xmin = lowest, colour = 1, alpha = .5, height = .00)) + #
+  geom_point(colour = "red", size = 1.5) +#
+  geom_vline(xintercept = 1, alpha = .6) +#
+  theme(legend.position = "none") +#
+  ylab(NULL) + #
+  xlab("Country specific intercept relative to overall average (relevance)") #
+# e.g. if Columbia value is 1.38 this indicates that average in Columbia is 38% higher than the overall average across all countries#
+#
+p7#
+p8 <- plotly::ggplotly(p7)
+out6 <- rstanarm::stan_glmer(less ~ 1 + age + sex + AUDIT_SCORE + (1 | ncountry), #
+                             data = data,#
+                             family = poisson(link = log),#
+                             prior = student_t(df = 7), #
+                             prior_intercept = student_t(df = 7),#
+                             chains = chains, #
+                             cores = cores, #
+                             warmup = warmup,#
+                             iter = iter,#
+                             seed = seed)#
+#
+saveRDS(out6,"GDS_less_stanresults.RDS")#
+summary(out6)#
+print(out6)#
+#launch_shinystan(out5, ppd = FALSE) #slow, use ppd = FALSE to speed up#
+rstanarm::ranef(out6)#
+#
+rstan::traceplot(out6$stanfit, inc_warmup = TRUE)#
+res6 <- as.data.frame(ranef(out6))#
+res6 <- cbind(res6$grp,round(res6[c("condval")],3))#
+ci90 <- posterior_interval(out6, prob = 0.90, #
+                           regex_pars = "^[b]")#
+ci50 <- posterior_interval(out6, prob = 0.50, #
+                           regex_pars = "^[b]")#
+res6 <- cbind(res6,round(ci90, 3),round(ci50, 3))#
+res6 <- res6[,c(1,2,3,5,6,4)]#
+str(res6)#
+rownames(res6) <- NULL#
+res6#
+colnames(res6) <- c("country","median","lowest","low","high","highest")#
+res6a <- cbind(res6[,c(1)],exp(res6[,c(2:6)]))#
+colnames(res6a) <- c("country","median","lowest","low","high","highest")#
+#
+p9 <- ggplot(res6a, aes(x = median, y = country)) + #
+  geom_errorbarh(aes(xmax = high, xmin = low, size = 1, colour = 5, alpha = .8#
+                     , height = .00)) +#
+  geom_errorbarh(aes(xmax = highest, xmin = lowest, colour = 1, alpha = .5, height = .00)) + #
+  geom_point(colour = "red", size = 1.5) +#
+  geom_vline(xintercept = 1, alpha = .6) +#
+  theme(legend.position = "none") +#
+  ylab(NULL) + #
+  xlab("Country specific intercept relative to overall average (Less)") #
+# e.g. if Columbia value is 1.38 this indicates that average in Columbia is 38% higher than the overall average across all countries#
+#
+p9#
+p10 <- plotly::ggplotly(p9)
+out1d <- lme4::glmer(less ~ 1 + scale(age) + scale(sex) + scale(AUDIT_SCORE) + (1 | ncountry),
+out1d <- lme4::glmer(less ~ 1 + scale(age) + scale(sex) + scale(AUDIT_SCORE) + (1 | ncountry),
+out1d <- lme4::glmer(less ~ 1 + scale(age) + scale(sex) + scale(AUDIT_SCORE) + (1 | ncountry),
+out1d <- lme4::glmer(less ~ 1 + scale(age) + scale(sex) + scale(AUDIT_SCORE) + (1 | ncountry),
+out1d <- lme4::glmer(less ~ 1 + scale(age) + scale(sex) + scale(AUDIT_SCORE) + (1 | ncountry), #
+                     data = data,#
+                     family = poisson(link = "log"))
+out1d <- lme4::glmer(less ~ 1 + scale(age) + scale(sex) + scale(AUDIT_SCORE) + (1 | ncountry),
+out1d <- lme4::glmer(less ~ 1 + scale(age) + scale(sex) + scale(AUDIT_SCORE) + (1 | ncountry), #
+                     data = data,#
+                     family = poisson(link = "log"))
+out1d <- lme4::glmer(less ~ 1 + scale(age) + sex + scale(AUDIT_SCORE) + (1 | ncountry), #
+                     data = data,#
+                     family = poisson(link = "log"))
+summary(out1d)
+out1d <- lme4::glmer(less ~ 1 + scale(age) + scale(sex) + scale(AUDIT_SCORE) + (1 | ncountry), #
+                     data = data,#
+                     family = poisson(link = "log"))#
+summary(out1d)

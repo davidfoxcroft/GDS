@@ -1,0 +1,95 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
+
+```{r include=FALSE}
+source("dataprep.R")
+```
+
+```{r }
+### final modifications for analysis -------------------
+data8 <- data7 %>%
+  select(-awareness,-believe,-invbelieve,-relevance,-less) %>% 
+  pivot_wider(names_from = impact, values_from = response) %>% 
+  mutate(sex = as.factor(sex))
+glimpse(data8)
+```
+
+```{r}
+t1 <- Sys.time()
+mod1 <- lme4::glmer(new ~ scale(age,scale=F) + scale(AUDIT_SCORE,scale=F) + sex + (1|message) + (1|Final_country/id),
+                    data = data8, family = binomial(link = logit))
+t2 <- Sys.time()
+(t2 - t1)
+print(mod1)
+fixef(mod1)
+ranef(mod1)$Final_country
+ranef(mod1)$message
+```
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Cmd+Shift+K* to preview the HTML file). 
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+
+$$y_{1,ijk} \sim Bernoulli(1,\pi_{1,ijk} )$$
+$$y_{2,ijk} \sim Bernoulli(1,\pi_{1,ijk} )$$
+$$y_{3,ijk} \sim Bernoulli(1,\pi_{1,ijk} )$$
+
+$$logit(\pi_{1,ijk}) = \beta_{1,0} + 
+\sum_{l=1}^{L} \beta_{1,l} \; x_{l_{i}jk} \; + 
+\sum_{m=L+1}^{M} \beta_{1,m} \; x_{mjk} \; +
+\sum_{n=M+1}^{N} \beta_{1,n} \; x_{nk} \; +
+(v_{1,k} + u_{1,jk})$$
+
+$$logit(\pi_{2,ijk}) = \beta_{2,0} + 
+\sum_{l=1}^{L} \beta_{2,l} \; x_{l_{i}jk} \; + 
+\sum_{m=L+1}^{M} \beta_{2,m} \; x_{mjk} \; +
+\sum_{n=M+1}^{N} \beta_{2,n} \; x_{nk} \; +
+(v_{2,k} + u_{2,jk})$$
+
+$$logit(\pi_{3,ijk}) = \beta_{3,0} + 
+\sum_{l=1}^{L} \beta_{3,l} \; x_{l_{i}jk} \; + 
+\sum_{m=L+1}^{M} \beta_{3,m} \; x_{mjk} \; +
+\sum_{n=M+1}^{N} \beta_{3,n} \; x_{nk} \; +
+(v_{3,k} + u_{3,jk})$$
+
+$$\begin{bmatrix}
+v_{1,k}\\
+v_{2,k}\\
+v_{3,k} 
+\end{bmatrix}
+\sim N({0,\Omega_{v}}), \;\;\; \Omega_{v} = \begin{bmatrix}
+\sigma^2_{v1} &  & \\ 
+\sigma_{v1v2} & \sigma^2_{v2} & \\ 
+\sigma_{v1v3} & \sigma_{v2v3} & \sigma^2_{v3}
+\end{bmatrix}$$
+
+$$\begin{bmatrix}
+u_{1,jk}\\
+u_{2,jk}\\
+u_{3,jk} 
+\end{bmatrix}
+\sim N({0,\Omega_{u}}), \;\;\; \Omega_{u} = \begin{bmatrix}
+\sigma^2_{u1} &  & \\ 
+\sigma_{u1u2} & \sigma^2_{u2} & \\ 
+\sigma_{u1u3} & \sigma_{u2u3} & \sigma^2_{u3}
+\end{bmatrix}$$
+
+$$CovVar \begin{bmatrix}
+y_{1,ijk}\;|\; \pi_{1,ijk}\\ 
+y_{2,ijk}\;|\; \pi_{2,ijk}\\ 
+y_{3,ijk}\;|\; \pi_{3,ijk}
+\end{bmatrix}
+= \begin{bmatrix}
+\pi_{1,ijk}(1 - \pi_{1,ijk}) &  & \\ 
+\rho_{12} & \pi_{2,ijk}(1 - \pi_{2,ijk}) & \\ 
+\rho_{13} & \rho_{23} & \pi_{3,ijk}(1 - \pi_{3,ijk})
+\end{bmatrix}$$
+
