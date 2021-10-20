@@ -9,6 +9,7 @@ library(here)
 library(gt)
 library(webshot)
 library(rstan)
+library(modelsummary)
 
 
 #### get data -------------
@@ -24,7 +25,8 @@ restab1
 #### read model ------------------
 
 #mod <- readRDS(here("GDS", "GDS_brms_multi_multi_data8.RDS"))
-mod <- readRDS(here("GDS", "brms_mod_interaction2_data9a.rds"))
+mod <- readRDS(here("brms_mod_interaction2_data9a.rds"))
+modelsummary(mod)
 
 #### model fit (bayes R-squared) -------------
 bayesR2tab <- brms::bayes_R2(mod) # crashes R session - ? more memory needed. (update - works but slow if set up 256GB swap file on psyworkstation)
