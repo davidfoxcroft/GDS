@@ -15,3 +15,5 @@
 *.zip
 *.stan
 *.Rmd
+oldcode/
+rstudio-export/
