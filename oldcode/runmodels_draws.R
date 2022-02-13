@@ -5,6 +5,7 @@ library(htmlwidgets)
 library(tidyverse)
 library(here)
 library(gt)
+library(webshot)
 
 source(here("GDS", "dataprep.R"))
 
@@ -37,12 +38,12 @@ restab1
 mod <- readRDS("~/GDS_brms_multi_multi_data9.RDS")
 
 # model fit (bayes R-squared)
-#brms::bayes_R2(mod) # crashes R session - ? more memory needed
-bayesR2tab <- readRDS(here("GDS_brms_multi_multi_data9_Bayesr2tab.RDS"))
+#brms::bayes_R2(mod) # crashes R session - ? more memory needed. (update - works but slow if set up 256GB swap file
+bayesR2tab <- readRDS(here("~/GDS_cmdstan_brms_data9_bayesR2tab_interact_mod.RDS"))
 
 
 # table of fit, fixed and random effects
-fe1 <- summary(mod)$fixed[c(1,5:7,2,8:10,3,11:13,4,14:16),] %>% 
+fe1 <- summary(mod)$fixed[c(1,5:7,2,8:10,3,11:13,4,14:16),] %>%
   as_tibble(rownames = "Parameter") %>% 
   select(-Est.Error,
          -Bulk_ESS) %>% 
@@ -54,7 +55,20 @@ fe1 <- summary(mod)$fixed[c(1,5:7,2,8:10,3,11:13,4,14:16),] %>%
            4,8,12,16,20,
            5,9,13,17,21)) 
   
-re1 <- as_tibble(summary(mod)$random$message[1:4,], rownames = "Parameter") %>% 
+re1 <- as_tibble(summary(mod)$random$`message:Final_country`[1:4,], rownames = "Parameter") %>% 
+  mutate(random_effect = "message:country") %>% 
+  select(-Est.Error,
+         -Bulk_ESS) %>% 
+  separate(Parameter, c("outcome","sd") , "_") %>% 
+  pivot_wider(names_from = outcome,
+              values_from = c(3:7)) %>% 
+  select(-sd) %>% 
+  select(c(1,2,6,10,14,18,
+           3,7,11,15,19,
+           4,8,12,16,20,
+           5,9,13,17,21)) 
+
+re1a <- as_tibble(summary(mod)$random$message[1:4,], rownames = "Parameter") %>% 
   mutate(random_effect = "message") %>% 
   select(-Est.Error,
          -Bulk_ESS) %>% 
@@ -67,7 +81,7 @@ re1 <- as_tibble(summary(mod)$random$message[1:4,], rownames = "Parameter") %>%
            4,8,12,16,20,
            5,9,13,17,21)) 
 
-re2 <- as_tibble(summary(mod)$random$Final_country[1:4,], rownames = "Parameter") %>% 
+re1b <- as_tibble(summary(mod)$random$Final_country[1:4,], rownames = "Parameter") %>% 
   mutate(random_effect = "country") %>% 
   select(-Est.Error,
          -Bulk_ESS) %>% 
@@ -80,7 +94,7 @@ re2 <- as_tibble(summary(mod)$random$Final_country[1:4,], rownames = "Parameter"
            4,8,12,16,20,
            5,9,13,17,21)) 
 
-re3 <- as_tibble(summary(mod)$random$`Final_country:id`[1:4,], rownames = "Parameter") %>% 
+re2 <- as_tibble(summary(mod)$random$`Final_country:id`[1:4,], rownames = "Parameter") %>% 
   mutate(random_effect = "id:country") %>% 
   select(-Est.Error,
          -Bulk_ESS) %>% 
@@ -114,7 +128,7 @@ colnames(fe1) <- c("parameter",
                    "UCI",
                    "Rhat",
                    "ESS")
-retab <- rbind(re1,re2,re3) 
+retab <- rbind(re1,re1a, re1b, re2) 
 colnames(retab) <- c("parameter",
                    "estimate",
                    "LCI",
@@ -229,7 +243,7 @@ newdat <- tidyr::expand_grid(Final_country = as.factor(levels(mod$data$Final_cou
 dplyr::glimpse(newdat)
 
 # use brms posterior predict to get predicted values from the posterior
-preddat1 <- brms::posterior_predict(mod, newdata = newdat, re_form = "~(1 | message) + (1 | Final_country)", summary = F) # use NULL or specify a random effect formula for re_form as this calculates predicted values for  group-level effects (i.e. take the actual estimated intercepts for each specific group and uses them to make new predictions for the same groups)
+preddat1 <- brms::posterior_predict(mod, newdata = newdat, re_form = "~(1 | message:Final_country)", summary = F) # use NULL or specify a random effect formula for re_form as this calculates predicted values for  group-level effects (i.e. take the actual estimated intercepts for each specific group and uses them to make new predictions for the same groups)
 
 preddat1.new <- preddat1[,,1]
 preddat1.believe <- preddat1[,,2]
@@ -267,14 +281,15 @@ restab2 <- newdat.merged %>%
   summarise(mean_new = mean(new),
             mean_drinkless = mean(drinkless))
 restab2
+glimpse(cbind(restab1,restab2))
 
 restab <- cbind(restab1,restab2) %>% 
   select("Country" = "Final_country",
-         "message" = "message",
-         "new, observed data" = "mean_new",
-         "new, predicted probability" = "mean_new1",
-         "drinkless, observed data" = "mean_drinkless",
-         "drinkless, predicted probability" = "mean_drinkless1") %>% 
+         "message" = "message...2",
+         "new, observed data" = "mean_new...3",
+         "new, predicted probability" = "mean_new...7",
+         "drinkless, observed data" = "mean_drinkless...4",
+         "drinkless, predicted probability" = "mean_drinkless...8") %>% 
   pivot_wider(names_from = message,
               values_from = c("new, observed data",
                               "new, predicted probability",
@@ -350,17 +365,6 @@ restab %>%
   tab_footnote(footnote = "predicted probability estimates are aggregates across equally weighted age, sex and AUDIT score categories, whereas observed data may be skewed to particular demographic groups ",
                locations = cells_title(groups = c("title"))) %>% 
   gtsave("appxtab_drinkless.pdf")
-
-
-
-
-
-
-
-
-
-
-
 
 
 # aggregate by sex, age (16-24, 25+) and AUDIT (0-15, 16+) 

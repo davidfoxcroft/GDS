@@ -1,5 +1,4 @@
-library(rstan)
-library(brms)
+
 
 #### stan options -----------------
 options(mc.cores = parallel::detectCores(logical = FALSE))
@@ -26,16 +25,16 @@ data9 <- data6 %>%
   mutate(sex = as.factor(sex))
 
 
-data8a <- data8 %>%
-   filter(Final_country == c("Brazil") |  # select subset of countries to speed up initial analyses
-          Final_country == c("Colombia") |
-          Final_country == c("Denmark") |
-          Final_country == c("Finland") |
-          Final_country == c("Israel") |
-          Final_country == c("Poland") |
-          Final_country == c("United Kingdom"))
- 
-glimpse(data9a)
+# data9a <- data9 %>%
+#   filter(Final_country == c("Brazil") |  # select subset of countries to speed up initial analyses
+#          Final_country == c("Colombia") |
+#          Final_country == c("Denmark") |
+#          Final_country == c("Finland") |
+#          Final_country == c("Israel") |
+#          Final_country == c("Poland") |
+#          Final_country == c("United Kingdom"))
+# 
+# glimpse(data9a)
 
 ### set up and run model --------------------
 
@@ -44,8 +43,9 @@ bf.new <- bf(new ~
                age +  
                AUDIT_SCORE + 
                sex +
-               (1 | message * Final_country ) + 
-               (1 | Final_country:id) 
+               (1 | p | message ) +
+               (1 | q | Final_country ) + 
+               (1 | r | Final_country:id) 
              )
 bf.believe <- bf(believe ~ 
                    1 + 
@@ -78,8 +78,7 @@ bf.drinkless <- bf(drinkless ~
 # get_prior(bf.new, data = data9)
 prior <- c(
   prior(student_t(3, 0, 2.5), class = "Intercept", resp = "new"),
-  prior(student_t(3, 0, 2.5), class = "b", resp = "new"))
-,
+  prior(student_t(3, 0, 2.5), class = "b", resp = "new"),
   prior(student_t(3, 0, 2.5), class = "Intercept", resp = "believe"),
   prior(student_t(3, 0, 2.5), class = "b", resp = "believe"),
   prior(student_t(3, 0, 2.5), class = "Intercept", resp = "relevant"),
@@ -89,13 +88,13 @@ prior <- c(
 )
 
 t1 <- Sys.time()
-mod <- brm(bf.new, # + bf.believe + bf.relevant + bf.drinkless,
-            data = data8a, 
+mod <- brm(bf.new + bf.believe + bf.relevant + bf.drinkless,
+            data = data9, 
             family = bernoulli, 
-            #prior = prior, 
+            prior = prior, 
             iter = iter,
-            control = list(adapt_delta = 0.95,
-                           max_treedepth = 12),
+            control = list(adapt_delta = 0.99,
+                           max_treedepth = 16),
             sample_prior = "yes",
             seed = seed,
             warmup = warmup,

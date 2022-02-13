@@ -1,13 +1,5 @@
-# status: coded for running univariate model using cmnstanr and then transferring results back into brms format for post-processing. The advantage of cmdstan is that is uses latest stan version and math library with extra features for gpu processing (won't work on my mac, but ready for new workstation) and for threaded parallelisation (not sufficiently developed yet, but hopefully soon)
-# 
-# 
-# installing rstan (https://github.com/stan-dev/rstan/wiki/Installing-RStan-on-Linux)
-#remove.packages("rstan")
-#remove.packages("StanHeaders")
-#if (file.exists(".RData")) file.remove(".RData")
-#Sys.setenv(MAKEFLAGS = "-j4") # four cores used
-#remotes::install_github("stan-dev/rstan", ref = "develop", subdir = "rstan/rstan", build_vignettes = FALSE)
-#remotes::install_github("paul-buerkner/brms")
+# status: coded for running univariate model using cmnstanr and then transferring results back into brms format for post-processing. The advantage of cmdstan is that is uses latest stan version and math library with extra features for gpu processing and for threaded parallelization
+
 
 library(RColorBrewer)
 library(forcats)
@@ -22,7 +14,6 @@ library(lattice)
 library(plotly)
 library(bayesplot)
 library(pushoverr)
-library(flextable)
 library(officer)
 library(cmdstanr)
 
@@ -30,39 +21,8 @@ source(here("GDS", "dataprep.R"))
 
 #### stan options -----------------
 options(mc.cores = parallel::detectCores(logical = FALSE))
-rstan_options(auto_write = FALSE) # TRUE to avoud auto recompile
-chains <- 4
-cores <- chains
-iter <- 2000
-warmup <- 1000
+rstan_options(auto_write = FALSE) # TRUE to avoid auto recompile
 seed <- as.integer(round(sqrt(1963),0)) # make integer for set.seed
-
-#### get and organise data -------------------
-glimpse(data7)
-
-data8 <- data7 %>%
-  select(-awareness,-believe,-invbelieve,-relevance,-less) %>% 
-  pivot_wider(names_from = impact, values_from = response) %>% 
-  mutate(sex = as.factor(sex))
-
-glimpse(data8)
-
-data8a <- data8 %>%
-   filter(Final_country == c("Brazil") |  # select subset of countries to speed up initial analyses
-          Final_country == c("Colombia") |
-          Final_country == c("Denmark") |
-          Final_country == c("Finland") |
-          Final_country == c("Israel") |
-          Final_country == c("Poland") |
-          Final_country == c("United Kingdom"))
- 
-glimpse(data8a)
-
-data9 <- data6 %>%
-  select(-awareness,-believe,-invbelieve,-relevance,-less) %>% 
-  pivot_wider(names_from = impact, values_from = response) %>% 
-  mutate(sex = as.factor(sex))
-
 
 
 #### set up and run model using brms -----------------
@@ -74,8 +34,9 @@ bf.new <- bf(new ~
                sex +
                (1 | p | message ) +
                (1 | q | Final_country ) + 
-               (1 |  Final_country:id) 
+               (1 | r | Final_country:id) 
 )
+
 bf.believe <- bf(believe ~ 
                    1 + 
                    age +  
@@ -83,7 +44,7 @@ bf.believe <- bf(believe ~
                    sex +
                    (1 | p | message ) +
                    (1 | q | Final_country ) + 
-                   (1 |   Final_country:id) 
+                   (1 | r | Final_country:id) 
 )
 bf.relevant <- bf(relevant ~ 
                     1 + 
@@ -92,7 +53,7 @@ bf.relevant <- bf(relevant ~
                     sex +
                     (1 | p | message ) +
                     (1 | q | Final_country ) + 
-                    (1 |    Final_country:id) 
+                    (1 | r | Final_country:id) 
 )
 bf.drinkless <- bf(drinkless ~ 
                      1 + 
@@ -101,111 +62,141 @@ bf.drinkless <- bf(drinkless ~
                      sex +
                      (1 | p | message ) +
                      (1 | q | Final_country ) + 
-                     (1 |   Final_country:id) 
+                     (1 | r | Final_country:id) 
 )
 
 bf.mv <- mvbf(bf.new, bf.believe, bf.relevant, bf.drinkless)
 
 
 # get_prior(bf.new, data = data9)
-prior <- c(
-  prior("student_t(3, 0, 2.5)", class = "Intercept", resp = "new"),
-  prior("student_t(3, 0, 2.5)", class = "b", resp = "new"),
-  prior("student_t(3, 0, 2.5)", class = "Intercept", resp = "believe"),
-  prior("student_t(3, 0, 2.5)", class = "b", resp = "believe"),
-  prior("student_t(3, 0, 2.5)", class = "Intercept", resp = "relevant"),
-  prior("student_t(3, 0, 2.5)", class = "b", resp = "relevant"),
-  prior("student_t(3, 0, 2.5)", class = "Intercept", resp = "drinkless"),
-  prior("student_t(3, 0, 2.5)", class = "b", resp = "drinkless")
-)
 # see https://discourse.mc-stan.org/t/default-priors-for-logistic-regression-coefficients-in-brms/13742
+prior <- c(
+  prior(student_t(7, 0, 1), class = "Intercept", resp = "new"),
+  prior(student_t(3, 0, 2.5), class = "b", resp = "new"),
+  prior(student_t(7, 0, 1), class = "Intercept", resp = "believe"),
+  prior(student_t(3, 0, 2.5), class = "b", resp = "believe"),
+  prior(student_t(7, 0, 1), class = "Intercept", resp = "relevant"),
+  prior(student_t(3, 0, 2.5), class = "b", resp = "relevant"),
+  prior(student_t(7, 0, 1), class = "Intercept", resp = "drinkless"),
+  prior(student_t(3, 0, 2.5), class = "b", resp = "drinkless")
+)
 
-# for use with backend = "cmdstanr" option
-set_cmdstan_path("~/cmdstan/cmdstan-2.24.1")
-cmdstan_path() # cmdstan version
-
-t1 <- Sys.time()
-mod3 <- brm(bf.mv,
-            data = data8a, 
-            family = bernoulli, 
-            prior = prior, 
-            iter = iter,
-            control = list(adapt_delta = 0.99,
-                           max_treedepth = 16),
-            sample_prior = "yes",
-            seed = seed,
-            warmup = warmup,
-            chains = chains, 
-            cores = cores,
-            backend = "cmdstanr")
-t2 <- Sys.time()
-tmod <- t2 - t1
-tmod
-
-#### cmdstan approach -----------------
 # compile and run model using cmdstan via cmdstanr
 set_cmdstan_path("~/cmdstan/cmdstan-2.24.1")
 cmdstan_path() # cmdstan version
 #stan_version() # rstan version
 
-drinkless.code <-  make_stancode(bf.mv, data = data8a, 
-                                family = bernoulli,
+# calculate recommended default grainsize
+(as.integer(round(nrow(data8) / (2 * parallel::detectCores(logical = FALSE)),0)))
+
+t1  <- Sys.time()
+mod <- brm(bf.mv,
+            data = data8, 
+            family = bernoulli(), 
+            prior = prior, 
+            inits = '0' ,
+            control = list(adapt_delta = 0.98,
+                           max_treedepth = 12),
+            sample_prior = 'yes',
+            seed = seed,
+            iter = 1000,
+            chains = 4, threads = threading(5, grainsize = 635), 
+            backend = 'cmdstanr',
+            save_model = '/home/david/stanfiles/brms_mod_data8.stan',
+            file = '/home/david/stanfiles/brms_mod_data8', # change filename to re-compile
+            silent = FALSE)
+t2 <- Sys.time()
+tmod <- t2 - t1
+tmod
+summary(mod)
+brms::bayes_R2(mod)  
+
+t1  <- Sys.time()
+mod2 <- update(mod, threads = threading(4, grainsize = 635))
+t2 <- Sys.time()
+tmod <- t2 - t1
+tmod
+summary(mod2)
+brms::bayes_R2(mod2)
+
+t1  <- Sys.time()
+mod3 <- update(mod, threads = threading(4, grainsize = 1270))
+t2 <- Sys.time()
+tmod <- t2 - t1
+tmod
+summary(mod3)
+brms::bayes_R2(mod3)
+
+t1  <- Sys.time()
+mod4 <- update(mod, threads = threading(4, grainsize = 1500))
+t2 <- Sys.time()
+tmod <- t2 - t1
+tmod
+summary(mod4)
+brms::bayes_R2(mod4)
+  
+
+
+
+############ alternative direct to cmdstan----------------
+# review check stan file - optional 
+drinkless.code <-  make_stancode(bf.mv + set_rescor(FALSE), 
+                                 data = data8a, 
+                                family = bernoulli(),
                                 prior = prior, 
-                                sample_prior = "yes")
+                                sample_prior = "no")
 cat(drinkless.code, file = "mv.stan")
-#NB edit drinkless.stan file to deal with std_normal glitch
-drinkless.data <- unclass(make_standata(bf.mv + set_rescor(FALSE), data = data8a))
-
-
-
+drinkless.data <- unclass(make_standata(bf.mv + set_rescor(FALSE), data = data8a)) # change model and data as appropriate 
 # compile and run model
-mod <- cmdstan_model("~/Dropbox/Coding/mv.stan", compile = TRUE)
+mod <- cmdstan_model("~/Documents/coding/mv.stan", compile = TRUE)
 t1 <- Sys.time()
 fit <- mod$sample(
   data = drinkless.data, 
   seed = seed, 
-  init = 0.5,
-  num_chains = 4, 
-  num_cores = 4,
-  refresh = 200,
-  num_samples = 1000, # handles this differently to brm
-  num_warmup = 1000,
-  max_depth = 14,
-  adapt_delta = 0.97
+  init = 0.5, # changes to (-0.5,0.5) from default (-2,2)
+  chains = 4, 
+  parallel_chains = 4,
+  iter_sampling = 1000, # handles this differently to brm
+  iter_warmup = 1000,
+  max_treedepth = 14,
+  adapt_delta = 0.98,
+  output_dir = "/home/david/stanfiles/"
   )
+fit$save_output_files(dir = "/home/david/stanfiles")
 t2 <- Sys.time()
 tmod <- t2 - t1
-tmod
+tmod # completion time
+str(fit)
 
-
-
+saveRDS(fit, "~/GDS_cmdstan_brms_multi_multi_data8a_fit.RDS")
+#fit <- readRDS("~/GDS_cmdstan_brms_multi_multi_data8_fit.RDS")
 # create brmsfit object without model fit and insert stanfit object into brmsfit object
-modelbrm <- brm(bf.mv + set_rescor(FALSE),
+brmmod <- brms::brm(bf.mv + set_rescor(TRUE),
                 data = data8a, 
                 empty = TRUE)
-modelbrm$fit <- rstan::read_stan_csv(fit$output_files())
-modelbrm <- brms::rename_pars(modelbrm)
 
+str(fit)
+
+fit <- read_stan_csv(fit$output_files())
+brmmod$fit <- fit 
+brmmod <- brms::rename_pars(brmmod)
+saveRDS(brmmod, "~/GDS_cmdstan_brms_multi_multi_data8a_modelbrm.RDS")
+#mod <- readRDS("~/GDS_cmdstan_brms_multi_multi_data9_modelbrm.RDS")
+#mod <- brmmod
 
 #### model summary and fit -----------------
 
-#mod1 <- mod
-mod <- modelbrm # use whichever model was calculated above
-
-# model fit (bayes R-squared)
-bayesR2tab_mod <- brms::bayes_R2(mod3)
-
-summary(get_elapsed_time(mod3))
-print(brms::get_elapsed_time(modelbrm))
-
-str(mod3) 
-
+# model results and fit (bayes R-squared)
+summary(mod)
+bayesR2tab_mod <- brms::bayes_R2(mod)
+bayesR2tab_mod
+saveRDS(bayesR2tab_mod, "~/GDS_cmdstan_brms_multi_multi_data9_bayesR2tab_mod.RDS")
 
 
 
 
 # new data for predicted probabilities
-newdat <- tidyr::expand_grid(Final_country = as.factor(levels(mod1$data$Final_country)), message = as.factor(levels(mod1$data$message)), sex = as.factor(levels(mod1$data$sex)), age = c(seq(16,80,4)), AUDIT_SCORE = c(seq(1,40,2)))
+newdat <- tidyr::expand_grid(Final_country = as.factor(levels(mod$data$Final_country)), message = as.factor(levels(mod$data$message)), sex = as.factor(levels(mod$data$sex)), age = c(seq(16,80,4)), AUDIT_SCORE = c(seq(1,40,2)))
 dplyr::glimpse(newdat)
 
 # use brms posterior predict to get predicted values from the posterior
