@@ -17,3 +17,5 @@
 *.Rmd
 oldcode/
 rstudio-export/
+logbook
+
