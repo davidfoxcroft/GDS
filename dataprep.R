@@ -1,26 +1,24 @@
-#### load required packages -------------------
+# load packages -------------------
 library(car)
 library(tidyverse)
 library(here)
 
-#### data load and checking ------------------
+# data load and checking ------------------
 data <- read_csv(here("GDS", "GDS 2018 Alcohol labels for David.csv"))
 glimpse(data)
 table(data$age)
 table(data$Final_country)
 table(data$ncountry)
-
 which(!complete.cases(data))
 which(is.na(data$id))
 
-#### replace missing ids ---------- 
+# replace missing ids - 
 data$id_orig <- data$id
 data$id <- c(1:dim(data[,1])[1])
 head(data)
 tail(data)
 which(is.na(data$id))
 
-#### collapse some countries together ----------
 data$Final_country <- car::recode(data$ncountry, "'Albania' = 'Balkans'; 
                           'Bosnia and Herzegovina' = 'Balkans';
                           'Bulgaria'  = 'Balkans';
@@ -32,9 +30,8 @@ data$Final_country <- car::recode(data$ncountry, "'Albania' = 'Balkans';
                           'Slovenia' = 'Balkans';
                           'United Kingdom' = 'England';
                           'Ireland' = 'Republic of Ireland'")
-table(data$Final_country)
 
-#### take a look at the data -----------
+table(data$Final_country)
 table(data$ncountry)
 table(data$alcheartnew)
 table(data$alclivernew)
@@ -44,20 +41,17 @@ table(data$alcfreedaysnew)
 table(data$alcmythnew)
 table(data$alcviolencenew)
 table(data$age, exclude = NULL)
-hist(scale(log(data$age)))
+#hist(scale(log(data$age)))
 table(data$sex, exclude = NULL)
+data$sex <- ifelse(data$sex == 1, 0, 1) # recode sex to 0: female and 1: male
 table(data$AUDIT_SCORE, exclude = NULL)
-hist(scale(data$AUDIT_SCORE^(1/3)))
+#hist(scale(data$AUDIT_SCORE^(1/3)))
 table(data$pdthighqual, exclude = NULL)
 table(data$pdtincome, exclude = NULL)
 table(data$year_illegal, exclude = NULL)
 table(data$freq_tobacco, exclude = NULL)
 
-#### recodes and compute new variables ----------------------
-table(data$sex, exclude = NULL)
-data$sex <- ifelse(data$sex == 1, 0, 1) # recode sex to 0: female and 1: male
-table(data$sex, exclude = NULL)
-
+# compute new variables ----------------------
 data$awareness <- data$alcheartnew + 
   data$alclivernew + 
   data$alccancernew +
@@ -66,7 +60,7 @@ data$awareness <- data$alcheartnew +
   data$alcmythnew + 
   data$alcviolencenew
 table(data$awareness)
-data %>% summarize(mean = mean(awareness), var = var(awareness)) # check for equal mean and variance to see if poisson is appropriate, otherwise negative binomial # NB this was an early analysis that we subsequently replaced
+data %>% summarize(mean = mean(awareness), var = var(awareness)) # check for equal mean and variance to see if poisson is appropriate, otherwise neagtive binomial
 
 
 table(data$alcheartbelieve)
@@ -101,10 +95,10 @@ data$believe <- data$alcheartbelieve +
   data$alcmythbelieve +
   data$alcviolencebelieve
 table(data$believe)
-hist(data$believe)
+#hist(data$believe)
 data$invbelieve <- 14 - data$believe # invert var for analysis
 table(data$invbelieve)
-hist(data$invbelieve)
+#hist(data$invbelieve)
 data %>% summarize(mean = mean(believe), var = var(believe))
 data %>% summarize(mean = mean(invbelieve), var = var(invbelieve))
 
@@ -125,7 +119,7 @@ data$relevance <- data$alcheartrelevance +
   data$alcmythrelevance +
   data$alcviolencerelevance - 7
 table(data$relevance)
-hist(data$relevance)
+#hist(data$relevance)
 data %>% summarize(mean = mean(relevance), var = var(relevance))
 
 
@@ -161,17 +155,19 @@ data$less <- data$alcheartless +
   data$alcmythless +
   data$alcviolenceless
 table(data$less)
-hist(data$less)
+#hist(data$less)
 data %>% summarize(mean = mean(less), var = var(less))
 
 
-#### sample data by country for initial analyses -------------
+
+
+# sample data by country for initial analyses -------------
 data1 <- data # full data set
-data2 <- data %>%  # n=100 for each country with N >= 250 for model testing
+data2 <- data %>%  # n=250 for each country with N >= 250 for model testing
   add_count(Final_country) %>% 
   filter(n >= 250) %>% 
   group_by(Final_country) %>% 
-  sample_n(100, replace = FALSE) %>%
+  sample_n(250, replace = FALSE) %>%
   ungroup()
 table(data2$Final_country)
 
@@ -183,7 +179,7 @@ glimpse(data3)
 table(data3$Final_country)
 
 
-#### reshape data wide to long for analysis with message as random effect --------------------------
+# reshape data wide to long --------------------------
 
 data4 <- data %>%  # data for new only
   select(c("id","age","Final_country","alcheartnew",
@@ -232,7 +228,7 @@ data6 <- data %>% # all data - data for all impact variables (new, believe, rele
                cols = c(alcheartnew:violenceless_yesmaybe),
                names_to = "message_impact",
                values_to = "response"
-  ) %>%
+               ) %>%
   mutate(., impact = ifelse(grepl("_new", message_impact), 
                             "relevant",
                             ifelse(grepl("believe", message_impact), 
@@ -241,29 +237,29 @@ data6 <- data %>% # all data - data for all impact variables (new, believe, rele
                                           "new",
                                           "drinkless")))) %>%
   mutate(., message = ifelse(grepl("heart", message_impact), # messy naming in original dataset so tidied up using alternative ifelse statements
-                             "heart",
-                             ifelse(grepl("liver", message_impact), 
-                                    "liver", 
-                                    ifelse(grepl("cancer", message_impact), 
-                                           "cancer",
-                                           ifelse(grepl("fat", message_impact), 
-                                                  "calories",
-                                                  ifelse(grepl("calorie", message_impact), 
-                                                         "calories",
-                                                         ifelse(grepl("days", message_impact), 
-                                                                "freedays",
-                                                                ifelse(grepl("myth", message_impact), 
-                                                                       "myth",
-                                                                       ifelse(grepl("Myth", message_impact), 
-                                                                              "myth",
-                                                                              "violence"))))))))) %>%
+                            "heart",
+                            ifelse(grepl("liver", message_impact), 
+                                   "liver", 
+                                   ifelse(grepl("cancer", message_impact), 
+                                          "cancer",
+                                          ifelse(grepl("fat", message_impact), 
+                                                 "calories",
+                                                 ifelse(grepl("calorie", message_impact), 
+                                                        "calories",
+                                                        ifelse(grepl("days", message_impact), 
+                                                               "freedays",
+                                                               ifelse(grepl("myth", message_impact), 
+                                                                      "myth",
+                                                                      ifelse(grepl("Myth", message_impact), 
+                                                                             "myth",
+                                                                             "violence"))))))))) %>%
   select(.,-c(message_impact)) %>%
   mutate(., Final_country, Final_country = factor(Final_country)) %>%
   mutate(., message, message = factor(message)) %>%
   mutate(., impact, impact = factor(impact, levels = c("new", "believe", "relevant", "drinkless")))
 
 
-data7 <- data2 %>% # model testing dataset (N = 100 random subset for each country) - data for all impact variables (new, believe, relevance, less) but binary (0,1) dummy re-coded versions
+data7 <- data2 %>% # model testing dataset - data for all impact variables (new, believe, relevance, less) but binary (0,1) dummy re-coded versions
   select(c("id","sex","age","AUDIT_SCORE", "Final_country",
            "awareness", "believe", "invbelieve",
            "relevance", "less",
@@ -319,34 +315,36 @@ data7 <- data2 %>% # model testing dataset (N = 100 random subset for each count
 glimpse(data7)
 which(!complete.cases(data7))
 
-data8 <- data7 %>%  # tidy up data7
+table(data6$Final_country, exclude = F)
+
+
+glimpse(data7)
+
+data8 <- data7 %>%
   select(-awareness,-believe,-invbelieve,-relevance,-less) %>% 
   pivot_wider(names_from = impact, values_from = response) %>% 
-  mutate(sex = as.factor(sex))
+  mutate(sex = as.factor(sex)) %>%
+  ungroup()
+
 glimpse(data8) 
+saveRDS(data8, here("GDS", "GDS_2018_data8.rds"))
 
-
-data8a <- data8 %>% # select subset of countries for quicker initial analyses
-  filter(Final_country == c("Brazil") |  
+data8a <- data8 %>%
+  filter(Final_country == c("Brazil") |  # select subset of countries to speed up initial analyses
            Final_country == c("Colombia") |
            Final_country == c("Denmark") |
            Final_country == c("Finland") |
            Final_country == c("Israel") |
            Final_country == c("Poland") |
            Final_country == c("United Kingdom"))
-glimpse(data8a)
 
-#### this is the final dataset ready for full analysis ---------
+glimpse(data8a)
+saveRDS(data8a, here("GDS", "GDS_2018_data8a.rds"))
+
 data9 <- data6 %>%
   select(-awareness,-believe,-invbelieve,-relevance,-less) %>% 
   pivot_wider(names_from = impact, values_from = response) %>% 
-  mutate(sex = as.factor(sex))
-glimpse(data9)
-
-data9a <- data9 %>%  # another model testing dataset with a randomly selected sub-sample !!! I must like these
-  group_by(Final_country) %>% 
-  sample_n(200, replace = FALSE) %>%
+  mutate(sex = as.factor(sex)) %>% 
   ungroup()
 
-glimpse(data9a)
-table(data9a$Final_country)
+saveRDS(data9, here("GDS", "GDS_2018_data9.rds"))
