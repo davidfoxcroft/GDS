@@ -11,3 +11,7 @@
 *.doc
 *.docx
 *.sav
+*.csv
+*.zip
+*.stan
+*.Rmd
