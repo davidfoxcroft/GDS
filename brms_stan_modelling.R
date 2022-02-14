@@ -1,8 +1,6 @@
 
 #### libraries and data ----------------
 
-gc() #cleanup first
-
 library(here)
 library(parallel)
 
@@ -93,13 +91,14 @@ mod <- brm(bf.mv,
                            max_treedepth = 14),
             #sample_prior = 'yes',
             seed = seed,
-            iter = 3000,
+            iter = 2000,
             warmup = 1000,
             thin = 1,
             chains = 4, 
             cores = 4,
             threads = threading(4), 
             backend = 'cmdstanr',
+            output_dir = '/home/david/stanfiles',
             save_model = '/home/david/stanfiles/brms_mod_data9_threading_Feb2022.stan',
             file = '/home/david/stanfiles/brms_mod_data9_threading_Feb2022', # change filename to re-compile
             silent = FALSE)
