@@ -16,9 +16,9 @@ library(flextable)
 library(tidybayes)
 library(gt)
 
-#data8 <- readRDS(here("GDS","GDS_2018_data8.rds"))
-#data8a <- readRDS(here("GDS","GDS_2018_data8a.rds"))
-data9 <- readRDS(here("GDS","GDS_2018_data9.rds"))
+#data8 <- readRDS("GDS_2018_data8.rds")
+#data8a <- readRDS("GDS_2018_data8a.rds")
+data9 <- readRDS("GDS_2018_data9.rds")
 
 restab1 <- data9 %>% 
   group_by(Final_country,message) %>% 
@@ -33,11 +33,11 @@ restab1
 
 # model results and fit (bayes R-squared)
 mod <- readRDS("~/stanfiles/brms_mod_data9_threading_Feb2022.rds")
-mod_sum <- readRDS(here("GDS", "mod_sum_data9.rds"))
+mod_sum <- readRDS("mod_sum_data9.rds")
 mod_sum
 bayesR2tab_mod <- brms::bayes_R2(mod)
 bayesR2tab_mod
-saveRDS(bayesR2tab_mod, here("GDS", "brms_mod_data9_threading_Feb2022_bayesR2tab.rds"))
+saveRDS(bayesR2tab_mod, "brms_mod_data9_threading_Feb2022_bayesR2tab.rds")
 
 mod$version
 mod$formula
@@ -340,8 +340,8 @@ tmod
 
 pushoverr::pushover(message = "And...the code is finished, phew!", user = Sys.getenv("PUSHOVER_USER"), app = Sys.getenv("PUSHOVER_APP"))  # use when keys set with .Renvir
 
-saveRDS(preddat1, here("GDS", "brms_mod_data8_preddat1.rds"))
-#preddat1 <- readRDS(here("GDS","brms_mod_data8_preddat1.rds"))
+saveRDS(preddat1, "brms_mod_data8_preddat1.rds")
+#preddat1 <- readRDS("brms_mod_data8_preddat1.rds")
 
 preddat1.new <- preddat1[,,1]
 preddat1.believe <- preddat1[,,2]
@@ -489,10 +489,6 @@ subp <- plotly::ggplotly(plot2, tooltip = c("text")) %>%
   plotly::layout(legend = list(orientation = "h", y = -0.02))
 subp
 
-# send to plotly web - needs keys
-chart_link <- plotly::api_create(subp, filename = "GDS-alcinfo-brms_plot9_message")
-chart_link # opens up browser and displays plot
-
 #################### below is code for final paper plots & tables ########################
 
 
@@ -564,7 +560,7 @@ restab %>%
   tab_header(title = "Observed data and predicted probability by country for \'new\' measure") %>% 
   tab_footnote(footnote = "predicted probability estimates are aggregates across equally weighted age, sex and AUDIT score categories, whereas observed data may be skewed to particular demographic groups ",
                locations = cells_title(groups = c("title"))) %>% 
-  gtsave(here("GDS","appxtab_new.pdf"))
+  gtsave("appxtab_new.pdf")
 
 
 # appx table for 'drinkless'
@@ -599,7 +595,7 @@ restab %>%
   tab_header(title = "Observed data and predicted probability by country for \'drinkless\' measure") %>% 
   tab_footnote(footnote = "predicted probability estimates are aggregates across equally weighted age, sex and AUDIT score categories, whereas observed data may be skewed to particular demographic groups ",
                locations = cells_title(groups = c("title"))) %>% 
-  gtsave(here("GDS","appxtab_drinkless.pdf"))
+  gtsave("appxtab_drinkless.pdf")
 
 
 # aggregate by sex, age (16-24, 25+) and AUDIT (0-15, 16+) 
@@ -967,7 +963,7 @@ subp <- subp %>%
     )
   )
 #subp
-htmlwidgets::saveWidget(subp, here("GDS", "plot_new.html"))
+htmlwidgets::saveWidget(subp, "plot_new.html")
 
 # plots to plotly - believe
 subp <- plotly::ggplotly(plotndm2, tooltip = c("text")) %>%
@@ -992,7 +988,7 @@ subp <- subp %>%
     )
   )
 #subp
-htmlwidgets::saveWidget(subp, here("GDS", "plot_believe.html"))
+htmlwidgets::saveWidget(subp, "plot_believe.html")
 
 # plots to plotly - relevant
 subp <- plotly::ggplotly(plotndm3, tooltip = c("text")) %>%
@@ -1017,7 +1013,7 @@ subp <- subp %>%
     )
   )
 #subp
-htmlwidgets::saveWidget(subp, here("GDS", "plot_relevant.html"))
+htmlwidgets::saveWidget(subp, "plot_relevant.html")
 
 # plots to plotly - drinkless
 subp <- plotly::ggplotly(plotndm4, tooltip = c("text")) %>%
@@ -1042,7 +1038,7 @@ subp <- subp %>%
     )
   )
 #subp
-htmlwidgets::saveWidget(subp, here("GDS", "plot_drinkless.html"))
+htmlwidgets::saveWidget(subp, "plot_drinkless.html")
 
 
 

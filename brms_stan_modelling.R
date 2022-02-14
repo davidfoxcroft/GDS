@@ -1,14 +1,10 @@
 
 #### libraries and data ----------------
-
-library(here)
-library(parallel)
-
 # get data
-#source(here("GDS", "dataprep.R"))
-#data8 <- readRDS(here("GDS","GDS_2018_data8.rds"))
-#data8a <- readRDS(here("GDS","GDS_2018_data8a.rds"))
-data9 <- readRDS(here("GDS","GDS_2018_data9.rds"))
+#source("dataprep.R")
+#data8 <- readRDS("GDS_2018_data8.rds")
+#data8a <- readRDS("GDS_2018_data8a.rds")
+data9 <- readRDS("GDS_2018_data9.rds")
 
 #remotes::install_github("paul-buerkner/brms", force = TRUE)
 library(brms)
@@ -114,6 +110,6 @@ t2 <- Sys.time()
 tmod <- t2 - t1
 tmod
 mod_sum
-saveRDS(mod_sum, here("GDS", "mod_sum_data9.rds"))
+saveRDS(mod_sum,"mod_sum_data9.rds")
 # list session information
 sessionInfo()

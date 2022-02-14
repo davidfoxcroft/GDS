@@ -1,10 +1,9 @@
 # load packages -------------------
 library(car)
 library(tidyverse)
-library(here)
 
 # data load and checking ------------------
-data <- read_csv(here("GDS", "GDS 2018 Alcohol labels for David.csv"))
+data <- read_csv("GDS 2018 Alcohol labels for David.csv")
 glimpse(data)
 table(data$age)
 table(data$Final_country)
@@ -327,7 +326,7 @@ data8 <- data7 %>%
   ungroup()
 
 glimpse(data8) 
-saveRDS(data8, here("GDS", "GDS_2018_data8.rds"))
+saveRDS(data8, "GDS_2018_data8.rds")
 
 data8a <- data8 %>%
   filter(Final_country == c("Brazil") |  # select subset of countries to speed up initial analyses
@@ -339,7 +338,7 @@ data8a <- data8 %>%
            Final_country == c("United Kingdom"))
 
 glimpse(data8a)
-saveRDS(data8a, here("GDS", "GDS_2018_data8a.rds"))
+saveRDS(data8a, "GDS_2018_data8a.rds")
 
 data9 <- data6 %>%
   select(-awareness,-believe,-invbelieve,-relevance,-less) %>% 
@@ -347,4 +346,4 @@ data9 <- data6 %>%
   mutate(sex = as.factor(sex)) %>% 
   ungroup()
 
-saveRDS(data9, here("GDS", "GDS_2018_data9.rds"))
+saveRDS(data9, "GDS_2018_data9.rds")
