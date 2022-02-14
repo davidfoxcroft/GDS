@@ -1,3 +1,5 @@
+#renv::restore()
+
 
 library(RColorBrewer)
 library(forcats)
@@ -5,7 +7,7 @@ library(plotly)
 library(htmlwidgets)
 library(tidyverse)
 library(brms)
-#library(rstan)
+library(rstan)
 library(here)
 library(lattice)
 library(plotly)
@@ -1334,7 +1336,8 @@ htmlwidgets::saveWidget(subp, "plot_drinkless.html")
 # list session information
 sessionInfo()
 
-
+# save environment snapshot
+renv::snapshot()
 
 
 
