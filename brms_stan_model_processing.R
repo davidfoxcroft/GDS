@@ -16,14 +16,16 @@ library(flextable)
 library(tidybayes)
 library(gt)
 
-#data8 <- readRDS("GDS_2018_data8.rds")
+data8 <- readRDS("GDS_2018_data8.rds")
 #data8a <- readRDS("GDS_2018_data8a.rds")
-data9 <- readRDS("GDS_2018_data9.rds")
+#data9 <- readRDS("GDS_2018_data9.rds")
 
-restab1 <- data9 %>% 
+restab1 <- data8 %>% 
   group_by(Final_country,message) %>% 
-  select(Final_country,message,new,drinkless) %>% 
+  select(Final_country,message,new,believe,relevant,drinkless) %>% 
   summarise(mean_new = mean(new),
+            mean_believe = mean(believe),
+            mean_relevant = mean(relevant),
             mean_drinkless = mean(drinkless))
 restab1
 
@@ -35,12 +37,223 @@ restab1
 mod <- readRDS("~/stanfiles/brms_mod_data9_threading_Feb2022.rds")
 mod_sum <- readRDS("mod_sum_data9.rds")
 mod_sum
-bayesR2tab_mod <- brms::bayes_R2(mod)
-bayesR2tab_mod
-saveRDS(bayesR2tab_mod, "brms_mod_data9_threading_Feb2022_bayesR2tab.rds")
+bayesR2tab <- brms::bayes_R2(mod)
+bayesR2tab
+saveRDS(bayesR2tab, "brms_mod_data9_threading_Feb2022_bayesR2tab.rds")
 
 mod$version
 mod$formula
+
+
+#### Summary fit table -------------------
+
+mod <- readRDS("~/stanfiles/brms_mod_data8_threading_Feb11.rds")
+mod_sum <- readRDS("mod_sum_data8.rds")
+bayesR2tab <- readRDS("brms_mod_data8_threading_Feb11_bayesR2tab.rds")
+
+
+# table of fit, fixed and random effects
+fe1 <- mod_sum$fixed[c(1,5:7,2,8:10,3,11:13,4,14:16),] %>%
+  as_tibble(rownames = "Parameter") %>% 
+  select(-Est.Error,
+         -Bulk_ESS) %>% 
+  separate(Parameter, c("outcome","parameter") , "_")  %>% 
+  pivot_wider(names_from = outcome,
+              values_from = c(3:7)) %>% 
+  select(c(1,2,6,10,14,18,
+           3,7,11,15,19,
+           4,8,12,16,20,
+           5,9,13,17,21)) 
+
+re1 <- as_tibble(mod_sum$random$`Final_country:message`[1:4,], rownames = "Parameter") %>% 
+  mutate(random_effect = "message:country") %>% 
+  select(-Est.Error,
+         -Bulk_ESS) %>% 
+  separate(Parameter, c("outcome","sd") , "_") %>% 
+  pivot_wider(names_from = outcome,
+              values_from = c(3:7)) %>% 
+  select(-sd) %>% 
+  select(c(1,2,6,10,14,18,
+           3,7,11,15,19,
+           4,8,12,16,20,
+           5,9,13,17,21)) 
+
+re1a <- as_tibble(mod_sum$random$message[1:4,], rownames = "Parameter") %>% 
+  mutate(random_effect = "message") %>% 
+  select(-Est.Error,
+         -Bulk_ESS) %>% 
+  separate(Parameter, c("outcome","sd") , "_") %>% 
+  pivot_wider(names_from = outcome,
+              values_from = c(3:7)) %>% 
+  select(-sd) %>% 
+  select(c(1,2,6,10,14,18,
+           3,7,11,15,19,
+           4,8,12,16,20,
+           5,9,13,17,21)) 
+
+re1b <- as_tibble(mod_sum$random$Final_country[1:4,], rownames = "Parameter") %>% 
+  mutate(random_effect = "country") %>% 
+  select(-Est.Error,
+         -Bulk_ESS) %>% 
+  separate(Parameter, c("outcome","sd") , "_") %>% 
+  pivot_wider(names_from = outcome,
+              values_from = c(3:7)) %>% 
+  select(-sd) %>% 
+  select(c(1,2,6,10,14,18,
+           3,7,11,15,19,
+           4,8,12,16,20,
+           5,9,13,17,21)) 
+
+re2 <- as_tibble(mod_sum$random$`id`[1:4,], rownames = "Parameter") %>% 
+  mutate(random_effect = "id") %>% 
+  select(-Est.Error,
+         -Bulk_ESS) %>% 
+  separate(Parameter, c("outcome","sd") , "_") %>% 
+  pivot_wider(names_from = outcome,
+              values_from = c(3:7)) %>% 
+  select(-sd) %>% 
+  select(c(1,2,6,10,14,18,
+           3,7,11,15,19,
+           4,8,12,16,20,
+           5,9,13,17,21)) 
+
+colnames(fe1) <- c("parameter",
+                   "estimate",
+                   "LCI",
+                   "UCI",
+                   "Rhat",
+                   "ESS",
+                   "estimate",
+                   "LCI",
+                   "UCI",
+                   "Rhat",
+                   "ESS",
+                   "estimate",
+                   "LCI",
+                   "UCI",
+                   "Rhat",
+                   "ESS",
+                   "estimate",
+                   "LCI",
+                   "UCI",
+                   "Rhat",
+                   "ESS")
+retab <- rbind(re1,re1a, re1b, re2) 
+colnames(retab) <- c("parameter",
+                     "estimate",
+                     "LCI",
+                     "UCI",
+                     "Rhat",
+                     "ESS",
+                     "estimate",
+                     "LCI",
+                     "UCI",
+                     "Rhat",
+                     "ESS",
+                     "estimate",
+                     "LCI",
+                     "UCI",
+                     "Rhat",
+                     "ESS",
+                     "estimate",
+                     "LCI",
+                     "UCI",
+                     "Rhat",
+                     "ESS")
+
+
+allres <- rbind(fe1, retab) 
+
+
+restab <- as_tibble(allres, 
+                    .name_repair = ~ c(
+                      "parameter",
+                      "n1","n2","n3","n4","n5",
+                      "b1","b2","b3","b4","b5",
+                      "r1","r2","r3","r4","r5",
+                      "d1","d2","d3","d4","d5")) %>% 
+  add_row(parameter = "bayes_R2",
+          n1 = bayesR2tab[1,1],
+          n2 = bayesR2tab[1,3],
+          n3 = bayesR2tab[1,4],
+          b1 = bayesR2tab[1,1],
+          b2 = bayesR2tab[2,3],
+          b3 = bayesR2tab[2,4],
+          r1 = bayesR2tab[3,1],
+          r2 = bayesR2tab[3,3],
+          r3 = bayesR2tab[3,4],
+          d1 = bayesR2tab[4,1],
+          d2 = bayesR2tab[4,3],
+          d3 = bayesR2tab[4,4]) %>% 
+  gt(rowname_col = "parameter") %>% 
+  fmt_missing(
+    columns = 1:21,
+    missing_text = "") %>% 
+  tab_stubhead(label = "") %>% 
+  tab_spanner(
+    label = "new",
+    columns = c(2:6)
+  ) %>% 
+  tab_spanner(
+    label = "believe",
+    columns = c(7:11)
+  ) %>% 
+  tab_spanner(
+    label = "relevant",
+    columns = c(12:16)
+  ) %>% 
+  tab_spanner(
+    label = "drinkless",
+    columns = c(17:21)
+  ) %>% 
+  fmt_number(columns = c(2:5,7:10,12:15,17:20), 
+             decimals = 2) %>% 
+  fmt_number(columns = c(6,11,16,21), 
+             decimals = 0) %>% 
+  cols_align(align = c("center"), columns = c(2:21)) %>%
+  cols_merge_range(col_begin = vars(n2),
+                   col_end = vars(n3),
+                   sep = html(",")) %>% 
+  cols_label(n1 = md("*Est*"),
+             n2 = md("*95% CI*"),
+             n4 = md("*Rhat*"),
+             n5 = md("*ESS*")) %>% 
+  cols_merge_range(col_begin = vars(b2),
+                   col_end = vars(b3),
+                   sep = html(",")) %>% 
+  cols_label(b1 = md("*Est*"),
+             b2 = md("*95% CI*"),
+             b4 = md("*Rhat*"),
+             b5 = md("*ESS*")) %>% 
+  cols_merge_range(col_begin = vars(r2),
+                   col_end = vars(r3),
+                   sep = html(",")) %>% 
+  cols_label(r1 = md("*Est*"),
+             r2 = md("*95% CI*"),
+             r4 = md("*Rhat*"),
+             r5 = md("*ESS*")) %>% 
+  cols_merge_range(col_begin = vars(d2),
+                   col_end = vars(d3),
+                   sep = html(",")) %>% 
+  cols_label(d1 = md("*Est*"),
+             d2 = md("*95% CI*"),
+             d4 = md("*Rhat*"),
+             d5 = md("*ESS*")) %>% 
+  tab_row_group(group = "Random Effects (Est = sd)",
+                rows = parameter == "message" | 
+                  parameter == "country" |
+                  parameter == "message:country" |
+                  parameter == "id") %>% 
+  tab_row_group(group = "Population Effects",
+                rows = parameter == "Intercept" | 
+                  parameter == "age" |
+                  parameter == "AUDIT" |
+                  parameter == "sex1") %>% 
+  tab_row_group(group = "Model Fit",
+                rows = parameter == "bayes_R2") 
+restab
+
+
 
 #### check model -----------------
 
@@ -508,8 +721,10 @@ dplyr::glimpse(newdat.merged)
 
 restab2 <- newdat.merged %>% 
   group_by(country,message) %>% 
-  select(country,message,new,drinkless) %>% 
+  select(country,message,new,believe,relevant,drinkless) %>% 
   summarise(mean_new = mean(new),
+            mean_believe = mean(believe),
+            mean_relevant = mean(relevant),
             mean_drinkless = mean(drinkless))
 restab2
 glimpse(cbind(restab1,restab2))
@@ -518,12 +733,20 @@ restab <- cbind(restab1,restab2) %>%
   select("Country" = "Final_country",
          "message" = "message...2",
          "new, observed data" = "mean_new...3",
-         "new, predicted probability" = "mean_new...7",
-         "drinkless, observed data" = "mean_drinkless...4",
-         "drinkless, predicted probability" = "mean_drinkless...8") %>% 
+         "new, predicted probability" = "mean_new...9",
+         "believe, observed data" = "mean_believe...4",
+         "believe, predicted probability" = "mean_believe...10",
+         "relevant, observed data" = "mean_relevant...5",
+         "relevant, predicted probability" = "mean_relevant...11",
+         "drinkless, observed data" = "mean_drinkless...6",
+         "drinkless, predicted probability" = "mean_drinkless...12") %>% 
   pivot_wider(names_from = message,
               values_from = c("new, observed data",
                               "new, predicted probability",
+                              "believe, observed data",
+                              "believe, predicted probability",
+                              "relevant, observed data",
+                              "relevant, predicted probability",
                               "drinkless, observed data",
                               "drinkless, predicted probability")) %>% 
   ungroup()
@@ -562,6 +785,72 @@ restab %>%
                locations = cells_title(groups = c("title"))) %>% 
   gtsave("appxtab_new.pdf")
 
+# appx table for 'believe'
+restab %>% 
+  select(Country,contains("believe")) %>% 
+  mutate(Country = as.character(Country)) %>% 
+  select(1,2,9,3,10,4,11,5,12,6,13,7,14,8,15) %>% 
+  gt(rowname_col = "Country") %>% 
+  fmt_percent(columns = c(2:15), decimals = 1) %>% 
+  cols_align(align = "center", columns = c(2:15)) %>% 
+  cols_label("believe, observed data_calories" = "observed data",
+             "believe, observed data_cancer" = "observed data",
+             "believe, observed data_freedays" = "observed data",
+             "believe, observed data_heart" = "observed data",
+             "believe, observed data_liver" = "observed data",
+             "believe, observed data_myth" = "observed data",
+             "believe, observed data_violence" = "observed data",
+             "believe, predicted probability_calories" = "predicted probability",
+             "believe, predicted probability_cancer" = "predicted probability",
+             "believe, predicted probability_freedays" = "predicted probability",
+             "believe, predicted probability_heart" = "predicted probability",
+             "believe, predicted probability_liver" = "predicted probability",
+             "believe, predicted probability_myth" = "predicted probability",
+             "believe, predicted probability_violence" = "predicted probability") %>% 
+  tab_spanner(label = "calories", columns = c(2,3)) %>% 
+  tab_spanner(label = "cancer", columns = c(4,5)) %>% 
+  tab_spanner(label = "freedays", columns = c(6,7)) %>% 
+  tab_spanner(label = "heart", columns = c(8,9)) %>% 
+  tab_spanner(label = "liver", columns = c(10,11)) %>% 
+  tab_spanner(label = "myth", columns = c(12,13)) %>% 
+  tab_spanner(label = "violence", columns = c(14,15)) %>% 
+  tab_header(title = "Observed data and predicted probability by country for \'believe\' measure") %>% 
+  tab_footnote(footnote = "predicted probability estimates are aggregates across equally weighted age, sex and AUDIT score categories, whereas observed data may be skewed to particular demographic groups ",
+               locations = cells_title(groups = c("title"))) %>% 
+  gtsave("appxtab_believe.pdf")
+
+restab %>% 
+  select(Country,contains("relevant")) %>% 
+  mutate(Country = as.character(Country)) %>% 
+  select(1,2,9,3,10,4,11,5,12,6,13,7,14,8,15) %>% 
+  gt(rowname_col = "Country") %>% 
+  fmt_percent(columns = c(2:15), decimals = 1) %>% 
+  cols_align(align = "center", columns = c(2:15)) %>% 
+  cols_label("relevant, observed data_calories" = "observed data",
+             "relevant, observed data_cancer" = "observed data",
+             "relevant, observed data_freedays" = "observed data",
+             "relevant, observed data_heart" = "observed data",
+             "relevant, observed data_liver" = "observed data",
+             "relevant, observed data_myth" = "observed data",
+             "relevant, observed data_violence" = "observed data",
+             "relevant, predicted probability_calories" = "predicted probability",
+             "relevant, predicted probability_cancer" = "predicted probability",
+             "relevant, predicted probability_freedays" = "predicted probability",
+             "relevant, predicted probability_heart" = "predicted probability",
+             "relevant, predicted probability_liver" = "predicted probability",
+             "relevant, predicted probability_myth" = "predicted probability",
+             "relevant, predicted probability_violence" = "predicted probability") %>% 
+  tab_spanner(label = "calories", columns = c(2,3)) %>% 
+  tab_spanner(label = "cancer", columns = c(4,5)) %>% 
+  tab_spanner(label = "freedays", columns = c(6,7)) %>% 
+  tab_spanner(label = "heart", columns = c(8,9)) %>% 
+  tab_spanner(label = "liver", columns = c(10,11)) %>% 
+  tab_spanner(label = "myth", columns = c(12,13)) %>% 
+  tab_spanner(label = "violence", columns = c(14,15)) %>% 
+  tab_header(title = "Observed data and predicted probability by country for \'relevant\' measure") %>% 
+  tab_footnote(footnote = "predicted probability estimates are aggregates across equally weighted age, sex and AUDIT score categories, whereas observed data may be skewed to particular demographic groups ",
+               locations = cells_title(groups = c("title"))) %>% 
+  gtsave("appxtab_relevant.pdf")
 
 # appx table for 'drinkless'
 restab %>% 
