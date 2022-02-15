@@ -5,10 +5,10 @@ library(RColorBrewer)
 library(forcats)
 library(plotly)
 library(htmlwidgets)
-library(tidyverse)
+library(tidyr)
+library(tibble)
 library(brms)
 library(rstan)
-library(here)
 library(lattice)
 library(plotly)
 library(bayesplot)
@@ -33,7 +33,14 @@ restab1
 
 
 
+
 #### model summary and fit -----------------
+
+# get data
+##### retrieve large rds files from cloud (aws s3) - do once and save locally ----------
+#mod <- aws.s3::s3load("brms_mod_data8_threading_Feb11.rds", bucket = "rstudio-data")
+saveRDS(mod,"~/stanfiles/brms_mod_data8_threading_Feb11.rds")
+####-----------
 
 # model results and fit (bayes R-squared)
 mod <- readRDS("~/stanfiles/brms_mod_data9_threading_Feb2022.rds")
