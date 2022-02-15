@@ -107,12 +107,7 @@ tmod
 pushoverr::pushover(message = "And...the code is finished, phew!", user = Sys.getenv("PUSHOVER_USER"), app = Sys.getenv("PUSHOVER_APP"))  # use when keys set with .Renviron
 
 # backup large & important model fit files to cloud (aws s3)
-aws.s3::put_object(
-  file = '/home/david/stanfiles/brms_mod_data8_threading_Feb11.rds',
-  object = "brms_mod_data8_threading_Feb11.rds", 
-  bucket = "rstudio-data",
-  multipart = TRUE
-)
+#s3save(mod, bucket = "rstudio-data", object = "brms_mod_data8_threading_Feb11.rds")
 
 # model summary
 t1 <- Sys.time()
@@ -122,6 +117,8 @@ tmod <- t2 - t1
 tmod
 mod_sum
 saveRDS(mod_sum,"mod_sum_data9.rds")
+#aws.s3::s3save(mod_sum, bucket = "rstudio-data", object = "mod_sum_data8.rds")
+
 
 # list session information
 sessionInfo()
