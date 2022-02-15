@@ -52,7 +52,7 @@ restab1
 #### model summary and fit -----------------
 
 # model results and fit (bayes R-squared)
-mod <- readRDS("~/stanfiles/brms_mod_data8_threading_Feb2022.rds")
+mod <- readRDS("~/stanfiles/brms_mod_data8_threading_Feb11.rds")
 mod$version
 mod$formula
 
@@ -275,10 +275,10 @@ prior_summary(mod)
 summary(mod)
 (ranef(mod))$message[,,1]
 (ranef(mod))$Final_country[,,1]
-pp_check(mod, resp = "new")
-pp_check(mod, resp = "believe")
-pp_check(mod, resp = "relevant")
-pp_check(mod, resp = "drinkless")
+ppcheck_new <- pp_check(mod, resp = "new")
+ppcheck_believe <- pp_check(mod, resp = "believe")
+ppcheck_relevant <- pp_check(mod, resp = "relevant")
+ppcheck_drinkless <- pp_check(mod, resp = "drinkless")
 
 ### MCMC diagnostics
 draws <- as.array(mod, variable = c("b_new_Intercept",
