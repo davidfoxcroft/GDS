@@ -116,7 +116,11 @@ t2 <- Sys.time()
 tmod <- t2 - t1
 tmod
 mod_sum
+<<<<<<< HEAD
 saveRDS(mod_sum,"mod_sum_data9.rds")
+=======
+saveRDS(mod_sum,"mod_sum_data8.rds")
+>>>>>>> 7cc6c051428a6b1e0b80e8a668c860def0265757
 #aws.s3::s3saveRDS(mod_sum, bucket = "rstudio-data", object = "mod_sum_data8.rds")
 
 
