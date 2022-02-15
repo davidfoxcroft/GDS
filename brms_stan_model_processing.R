@@ -1,5 +1,20 @@
 #renv::restore()
 
+# get data
+##### retrieve large rds files from cloud (aws s3) - do once and save locally ----------
+# mod <- aws.s3::s3readRDS("brms_mod_data8_threading_Feb11.rds", bucket = "rstudio-data")
+# mod_sum <- aws.s3::s3readRDS("mod_sum_data8.rds", bucket = "rstudio-data")
+# bayesR2tab <- aws.s3::s3readRDS("brms_mod_data8_threading_Feb11_bayesR2tab.rds", bucket = "rstudio-data")
+# data8 <- aws.s3::s3readRDS("GDS_2018_data8.rds", bucket = "rstudio-data")
+# data8a <- aws.s3::s3readRDS("GDS_2018_data8a.rds", bucket = "rstudio-data")
+# data9 <- aws.s3::s3readRDS("GDS_2018_data9.rds", bucket = "rstudio-data")
+# saveRDS(mod,"~/stanfiles/brms_mod_data8_threading_Feb11.rds")
+# saveRDS(mod_sum,"mod_sum_data8.rds")
+# saveRDS(bayesR2tab, "brms_mod_data8_threading_Feb11_bayesR2tab.rds")
+# saveRDS(data8, "GDS_2018_data8.rds")
+# saveRDS(data8a, "GDS_2018_data8a.rds")
+# saveRDS(data9, "GDS_2018_data9.rds")
+####-----------
 
 library(RColorBrewer)
 library(forcats)
@@ -36,38 +51,21 @@ restab1
 
 #### model summary and fit -----------------
 
-# get data
-##### retrieve large rds files from cloud (aws s3) - do once and save locally ----------
-# mod <- aws.s3::s3readRDS("brms_mod_data8_threading_Feb11.rds", bucket = "rstudio-data")
-# mod_sum <- aws.s3::s3load("mod_sum_data8.rds", bucket = "rstudio-data")
-# bayesR2tab <- aws.s3::s3load("brms_mod_data8_threading_Feb11_bayesR2tab.rds", bucket = "rstudio-data")
-# saveRDS(mod,"~/stanfiles/brms_mod_data8_threading_Feb11.rds")
-# saveRDS(mod_sum,"mod_sum_data8.rds")
-# saveRDS(bayesR2tab, "brms_mod_data8_threading_Feb11.rds")
-####-----------
-
 # model results and fit (bayes R-squared)
-mod <- readRDS("~/stanfiles/brms_mod_data9_threading_Feb2022.rds")
-mod_sum <- readRDS("mod_sum_data8.rds")
-mod_sum
-bayesR2tab <- brms::bayes_R2(mod)
-bayesR2tab
-saveRDS(bayesR2tab, "brms_mod_data9_threading_Feb2022_bayesR2tab.rds")
-#aws.s3::s3saveRDS(bayesR2tab, bucket = "rstudio-data", object = "brms_mod_data8_threading_Feb11_bayesR2tab.rds")
-
-
-
+mod <- readRDS("~/stanfiles/brms_mod_data8_threading_Feb2022.rds")
 mod$version
 mod$formula
 
+mod_sum <- readRDS("mod_sum_data8.rds")
+mod_sum
+#bayesR2tab <- brms::bayes_R2(mod)
+#saveRDS(bayesR2tab, "brms_mod_data9_threading_Feb2022_bayesR2tab.rds")
+#aws.s3::s3saveRDS(bayesR2tab, bucket = "rstudio-data", object = "brms_mod_data8_threading_Feb11_bayesR2tab.rds")
+bayesR2tab <- readRDS("brms_mod_data8_threading_Feb11_bayesR2tab.rds")
+bayesR2tab
+
 
 #### Summary fit table -------------------
-
-mod <- readRDS("~/stanfiles/brms_mod_data8_threading_Feb11.rds")
-mod_sum <- readRDS("mod_sum_data8.rds")
-bayesR2tab <- readRDS("brms_mod_data8_threading_Feb11_bayesR2tab.rds")
-
-
 # table of fit, fixed and random effects
 fe1 <- mod_sum$fixed[c(1,5:7,2,8:10,3,11:13,4,14:16),] %>%
   as_tibble(rownames = "Parameter") %>% 
