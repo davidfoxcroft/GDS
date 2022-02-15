@@ -38,8 +38,12 @@ restab1
 
 # get data
 ##### retrieve large rds files from cloud (aws s3) - do once and save locally ----------
-#mod <- aws.s3::s3load("brms_mod_data8_threading_Feb11.rds", bucket = "rstudio-data")
-saveRDS(mod,"~/stanfiles/brms_mod_data8_threading_Feb11.rds")
+# mod <- aws.s3::s3load("brms_mod_data8_threading_Feb11.rds", bucket = "rstudio-data")
+# mod_sum <- aws.s3::s3load("mod_sum_data8.rds", bucket = "rstudio-data")
+# bayesR2tab <- aws.s3::s3load("brms_mod_data8_threading_Feb11_bayesR2tab.rds", bucket = "rstudio-data")
+# saveRDS(mod,"~/stanfiles/brms_mod_data8_threading_Feb11.rds")
+# saveRDS(mod_sum,"mod_sum_data8.rds")
+# saveRDS(bayesR2tab, "brms_mod_data8_threading_Feb11.rds")
 ####-----------
 
 # model results and fit (bayes R-squared)
