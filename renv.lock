@@ -469,14 +469,14 @@
       "Package": "cmdstanr",
       "Version": "0.4.0",
       "Source": "GitHub",
-      "Remotes": "stan-dev/posterior",
       "RemoteType": "github",
+      "Remotes": "stan-dev/posterior",
       "RemoteHost": "api.github.com",
       "RemoteRepo": "cmdstanr",
       "RemoteUsername": "stan-dev",
       "RemoteRef": "v0.4.0",
       "RemoteSha": "3233585c8e0047d88c85ba8eb9072057ff5237a5",
-      "Hash": "11ef1e8c3ca65ef8a560b503212321ed",
+      "Hash": "ab1f01715f49bff5fff77ffb1b1aa17b",
       "Requirements": [
         "R6",
         "checkmate",
@@ -840,10 +840,10 @@
     },
     "gdtools": {
       "Package": "gdtools",
-      "Version": "0.2.3",
+      "Version": "0.2.4",
       "Source": "Repository",
       "Repository": "CRAN",
-      "Hash": "12a524de5a491ff39debb9311fc0763f",
+      "Hash": "bdfa7431687797edff8c9b0eb9271cc8",
       "Requirements": [
         "Rcpp",
         "systemfonts"
@@ -1040,16 +1040,6 @@
         "tibble",
         "tidyselect",
         "vctrs"
-      ]
-    },
-    "here": {
-      "Package": "here",
-      "Version": "1.0.1",
-      "Source": "Repository",
-      "Repository": "CRAN",
-      "Hash": "24b224366f9c2e7534d2344d10d59211",
-      "Requirements": [
-        "rprojroot"
       ]
     },
     "highr": {
