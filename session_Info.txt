@@ -1,0 +1,45 @@
+R version 4.1.2 (2021-11-01)
+Platform: x86_64-pc-linux-gnu (64-bit)
+Running under: Ubuntu 20.04.3 LTS
+
+Matrix products: default
+BLAS:   /usr/lib/x86_64-linux-gnu/openblas-serial/libblas.so.3
+LAPACK: /usr/lib/x86_64-linux-gnu/openblas-serial/liblapack.so.3
+
+locale:
+ [1] LC_CTYPE=en_GB.UTF-8       LC_NUMERIC=C               LC_TIME=en_GB.UTF-8       
+ [4] LC_COLLATE=en_GB.UTF-8     LC_MONETARY=en_GB.UTF-8    LC_MESSAGES=en_GB.UTF-8   
+ [7] LC_PAPER=en_GB.UTF-8       LC_NAME=C                  LC_ADDRESS=C              
+[10] LC_TELEPHONE=C             LC_MEASUREMENT=en_GB.UTF-8 LC_IDENTIFICATION=C       
+
+attached base packages:
+[1] stats     graphics  grDevices datasets  utils     methods   base     
+
+loaded via a namespace (and not attached):
+  [1] nlme_3.1-155         matrixStats_0.61.0   xts_0.12.1           threejs_0.3.3       
+  [5] httr_1.4.2           rstan_2.21.3         tensorA_0.36.2       tools_4.1.2         
+  [9] backports_1.4.1      utf8_1.2.2           R6_2.5.1             DT_0.20             
+ [13] lazyeval_0.2.2       DBI_1.1.2            colorspace_2.0-2     tidyselect_1.1.1    
+ [17] gridExtra_2.3        prettyunits_1.1.1    processx_3.5.2       Brobdingnag_1.2-7   
+ [21] curl_4.3.2           compiler_4.1.2       cli_3.2.0            xml2_1.3.3          
+ [25] shinyjs_2.1.0        plotly_4.10.0        colourpicker_1.1.1   posterior_1.2.0     
+ [29] scales_1.1.1         dygraphs_1.1.1.6     checkmate_2.0.0      brms_2.16.7         
+ [33] mvtnorm_1.1-3        ggridges_0.5.3       callr_3.7.0          stringr_1.4.0       
+ [37] digest_0.6.29        StanHeaders_2.21.0-7 base64enc_0.1-3      pkgconfig_2.0.3     
+ [41] htmltools_0.5.2      fastmap_1.1.0        htmlwidgets_1.5.4    rlang_1.0.1         
+ [45] shiny_1.7.1          farver_2.1.0         generics_0.1.2       jsonlite_1.7.3      
+ [49] zoo_1.8-9            crosstalk_1.2.0      gtools_3.9.2         dplyr_1.0.8         
+ [53] distributional_0.3.0 inline_0.3.19        magrittr_2.0.2       loo_2.4.1           
+ [57] bayesplot_1.8.1      Matrix_1.4-0         Rcpp_1.0.8           munsell_0.5.0       
+ [61] fansi_1.0.2          abind_1.4-5          lifecycle_1.0.1      stringi_1.7.6       
+ [65] pkgbuild_1.3.1       plyr_1.8.6           grid_4.1.2           parallel_4.1.2      
+ [69] promises_1.2.0.1     crayon_1.5.0         miniUI_0.1.1.1       lattice_0.20-45     
+ [73] knitr_1.37           ps_1.6.0             pillar_1.7.0         igraph_1.2.11       
+ [77] markdown_1.1         shinystan_2.5.0      reshape2_1.4.4       codetools_0.2-18    
+ [81] stats4_4.1.2         rstantools_2.1.1     glue_1.6.1           data.table_1.14.2   
+ [85] renv_0.15.2          RcppParallel_5.1.5   vctrs_0.3.8          httpuv_1.6.5        
+ [89] aws.s3_0.3.21        gtable_0.3.0         purrr_0.3.4          tidyr_1.2.0         
+ [93] assertthat_0.2.1     ggplot2_3.3.5        xfun_0.29            mime_0.12           
+ [97] xtable_1.8-4         coda_0.19-4          later_1.3.0          viridisLite_0.4.0   
+[101] rsconnect_0.8.25     tibble_3.1.6         shinythemes_1.2.0    aws.signature_0.6.0 
+[105] ellipsis_0.3.2       cmdstanr_0.4.0       pushoverr_1.1.0      bridgesampling_1.1-2
