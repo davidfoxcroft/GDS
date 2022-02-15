@@ -327,6 +327,7 @@ data8 <- data7 %>%
 
 glimpse(data8) 
 saveRDS(data8, "GDS_2018_data8.rds")
+#aws.s3::s3saveRDS(data8, bucket = "rstudio-data", object = "GDS_2018_data8.rds")
 
 data8a <- data8 %>%
   filter(Final_country == c("Brazil") |  # select subset of countries to speed up initial analyses
@@ -339,6 +340,7 @@ data8a <- data8 %>%
 
 glimpse(data8a)
 saveRDS(data8a, "GDS_2018_data8a.rds")
+#aws.s3::s3saveRDS(data8a, bucket = "rstudio-data", object = "GDS_2018_data8a.rds")
 
 data9 <- data6 %>%
   select(-awareness,-believe,-invbelieve,-relevance,-less) %>% 
@@ -347,3 +349,4 @@ data9 <- data6 %>%
   ungroup()
 
 saveRDS(data9, "GDS_2018_data9.rds")
+#aws.s3::s3saveRDS(data9, bucket = "rstudio-data", object = "GDS_2018_data9.rds")
