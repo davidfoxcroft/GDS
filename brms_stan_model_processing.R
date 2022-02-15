@@ -48,12 +48,12 @@ restab1
 
 # model results and fit (bayes R-squared)
 mod <- readRDS("~/stanfiles/brms_mod_data9_threading_Feb2022.rds")
-mod_sum <- readRDS("mod_sum_data9.rds")
+mod_sum <- readRDS("mod_sum_data8.rds")
 mod_sum
 bayesR2tab <- brms::bayes_R2(mod)
 bayesR2tab
 saveRDS(bayesR2tab, "brms_mod_data9_threading_Feb2022_bayesR2tab.rds")
-#aws.s3::s3save(bayesR2tab, bucket = "rstudio-data", object = "brms_mod_data8_threading_Feb11_bayesR2tab.rds")
+#aws.s3::s3saveRDS(bayesR2tab, bucket = "rstudio-data", object = "brms_mod_data8_threading_Feb11_bayesR2tab.rds")
 
 
 
