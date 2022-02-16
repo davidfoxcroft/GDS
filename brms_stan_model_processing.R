@@ -1,7 +1,4 @@
-#renv::restore()
-
-# get data
-##### retrieve large rds files from cloud (aws s3) - do once and save locally ----------
+##### on new machine retrieve large rds files from cloud (aws s3) - do once and save locally ----------
 # mod <- aws.s3::s3readRDS("brms_mod_data8_threading_Feb11.rds", bucket = "rstudio-data")
 # mod_sum <- aws.s3::s3readRDS("mod_sum_data8.rds", bucket = "rstudio-data")
 # bayesR2tab <- aws.s3::s3readRDS("brms_mod_data8_threading_Feb11_bayesR2tab.rds", bucket = "rstudio-data")
@@ -14,8 +11,8 @@
 # saveRDS(data8, "GDS_2018_data8.rds")
 # saveRDS(data8a, "GDS_2018_data8a.rds")
 # saveRDS(data9, "GDS_2018_data9.rds")
-####-----------
-
+#### libraries -----------
+#renv::restore()
 library(RColorBrewer)
 library(forcats)
 library(plotly)
@@ -33,11 +30,13 @@ library(flextable)
 library(tidybayes)
 library(gt)
 
-data8 <- readRDS("GDS_2018_data8.rds")
+
+# get data
+#data8 <- readRDS("GDS_2018_data8.rds")
 #data8a <- readRDS("GDS_2018_data8a.rds")
 #data9 <- readRDS("GDS_2018_data9.rds")
 
-restab1 <- data8 %>% 
+restab1 <- data9 %>% 
   group_by(Final_country,message) %>% 
   select(Final_country,message,new,believe,relevant,drinkless) %>% 
   summarise(mean_new = mean(new),
@@ -52,14 +51,14 @@ restab1
 #### model summary and fit -----------------
 
 # model results and fit (bayes R-squared)
-mod <- readRDS("~/stanfiles/brms_mod_data8_threading_Feb2022.rds")
+mod <- readRDS("/home/david/stanfiles/brms_mod_data8_threading_Feb11.rds")
 mod$version
 mod$formula
 
 mod_sum <- readRDS("mod_sum_data8.rds")
 mod_sum
 #bayesR2tab <- brms::bayes_R2(mod)
-#saveRDS(bayesR2tab, "brms_mod_data9_threading_Feb2022_bayesR2tab.rds")
+#saveRDS(bayesR2tab, "brms_mod_data9_threading_Feb11_bayesR2tab.rds")
 #aws.s3::s3saveRDS(bayesR2tab, bucket = "rstudio-data", object = "brms_mod_data8_threading_Feb11_bayesR2tab.rds")
 bayesR2tab <- readRDS("brms_mod_data8_threading_Feb11_bayesR2tab.rds")
 bayesR2tab
@@ -272,13 +271,15 @@ restab
 #### check model -----------------
 
 prior_summary(mod)
-summary(mod)
-(ranef(mod))$message[,,1]
-(ranef(mod))$Final_country[,,1]
-pp_check(mod, resp = "new")
-pp_check(mod, resp = "believe")
-pp_check(mod, resp = "relevant")
-pp_check(mod, resp = "drinkless")
+options(mc.cores = 2)
+ppchecknew <- pp_check(mod, type = "error_binned", resp = "new", ndraws = 100)
+ggsave(plot = ppchecknew, filename = "plots/ppchecknew.png")
+ppcheckbelieve <- pp_check(mod, resp = "believe", ndraws = 100)
+ggsave(plot = ppcheckbelieve, filename = "plots/ppchecknew.png")
+ppcheckrelevant <- pp_check(mod, resp = "relevant", ndraws = 100)
+ggsave(plot = ppcheckrelevant, filename = "plots/ppchecknew.png")
+ppcheckdrinkless <- pp_check(mod, resp = "drinkless", ndraws = 100)
+ggsave(plot = ppcheckdrinkless, filename = "plots/ppchecknew.png")
 
 ### MCMC diagnostics
 draws <- as.array(mod, variable = c("b_new_Intercept",
@@ -309,6 +310,7 @@ bayesplot::mcmc_parcoord(draws, alpha = 0.05,
                                   "b_relevant_Intercept",
                                   "b_drinkless_Intercept",
                                   "lp__"))
+ggsave(filename = "GDS/plots/bayesplot_mcmc_parcoord_Intercepts.png")
 bayesplot::mcmc_parcoord(draws, alpha = 0.05, 
                          np = np,
                          transform = function(x) {(x - mean(x)) / sd(x)},
@@ -324,6 +326,7 @@ bayesplot::mcmc_parcoord(draws, alpha = 0.05,
                                   "b_drinkless_age",
                                   "b_drinkless_AUDIT_SCORE", 
                                   "b_drinkless_sex1"))
+ggsave(filename = "GDS/plots/bayesplot_mcmc_parcoord_betas.png")
 
 bayesplot::mcmc_areas(draws, 
                       pars = c("b_new_age",
@@ -342,6 +345,7 @@ bayesplot::mcmc_areas(draws,
                       prob_outer = 0.99, # 99%
                       point_est = "mean"
 )
+ggsave(filename = "GDS/plots/bayesplot_mcmc_areas_betas.png")
 
 bayesplot::mcmc_hist(draws, 
                      pars = c("b_new_age",
@@ -357,6 +361,7 @@ bayesplot::mcmc_hist(draws,
                               "b_drinkless_AUDIT_SCORE", 
                               "b_drinkless_sex1")
 )
+ggsave(filename = "GDS/plots/bayesplot_mcmc_hist_betas.png")
 
 bayesplot::color_scheme_set("viridis")
 bayesplot::mcmc_trace(draws, pars = c("b_new_Intercept",
@@ -376,6 +381,7 @@ bayesplot::mcmc_trace(draws, pars = c("b_new_Intercept",
                                       "b_drinkless_AUDIT_SCORE", 
                                       "b_drinkless_sex1",
                                       "lp__"))
+ggsave(filename = "GDS/plots/bayesplot_mcmc_trace_betas_lp.png")
 
 rhats <- bayesplot::rhat(mod, pars = c("b_new_Intercept",
                                        "b_believe_Intercept",
@@ -394,9 +400,11 @@ rhats <- bayesplot::rhat(mod, pars = c("b_new_Intercept",
                                        "b_drinkless_AUDIT_SCORE", 
                                        "b_drinkless_sex1",
                                        "lp__"))
+
 print(rhats)
 bayesplot::color_scheme_set("brightblue") # see help("color_scheme_set")
 bayesplot::mcmc_rhat(rhats) + bayesplot::yaxis_text(hjust = 1)
+ggsave(filename = "GDS/plots/bayesplot_mcmc_rhats_betas_lp.png")
 
 ratios_mod <- bayesplot::neff_ratio(mod, pars = c("b_new_Intercept",
                                                   "b_believe_Intercept",
@@ -417,6 +425,7 @@ ratios_mod <- bayesplot::neff_ratio(mod, pars = c("b_new_Intercept",
                                                   "lp__"))
 print(ratios_mod)
 bayesplot::mcmc_neff(ratios_mod, size = 2)
+ggsave(filename = "GDS/plots/bayesplot_mcmc_neff_betas_lp.png")
 
 bayesplot::mcmc_acf(draws, pars = c("b_new_Intercept",
                                     "b_believe_Intercept",
@@ -436,8 +445,10 @@ bayesplot::mcmc_acf(draws, pars = c("b_new_Intercept",
                                     "b_drinkless_sex1",
                                     "lp__"),
                     lags = 100)
+ggsave(filename = "GDS/plots/bayesplot_mcmc_acf_betas_lp.png")
 
 bayesplot::mcmc_nuts_divergence(np, bayesplot::log_posterior(mod))
+ggsave(filename = "GDS/plots/bayesplot_mcmc_nuts_divergence.png")
 
 bayesplot::mcmc_pairs(draws, np = np, pars = c("b_new_Intercept",
                                                "b_believe_Intercept",
@@ -445,6 +456,7 @@ bayesplot::mcmc_pairs(draws, np = np, pars = c("b_new_Intercept",
                                                "b_drinkless_Intercept",
                                                "lp__"), 
                       off_diag_args = list(size = 0.75))
+ggsave(filename = "GDS/plots/bayesplot_mcmc_pairs_Intercepts.png")
 
 bayesplot::mcmc_pairs(draws, np = np, pars = c("b_new_age",
                                                "b_new_AUDIT_SCORE",
@@ -454,6 +466,7 @@ bayesplot::mcmc_pairs(draws, np = np, pars = c("b_new_age",
                                                "b_believe_sex1", 
                                                "lp__"), 
                       off_diag_args = list(size = 0.75))
+ggsave(filename = "GDS/plots/bayesplot_mcmc_pairs_betas_new_believe_lp.png")
 
 bayesplot::mcmc_pairs(draws, np = np, pars = c("b_relevant_age", 
                                                "b_relevant_AUDIT_SCORE",
@@ -463,6 +476,8 @@ bayesplot::mcmc_pairs(draws, np = np, pars = c("b_relevant_age",
                                                "b_drinkless_sex1",
                                                "lp__"), 
                       off_diag_args = list(size = 0.75))
+ggsave(filename = "GDS/plots/bayesplot_mcmc_pairs_betas_relevant_drinkless_lp.png")
+
 
 
 

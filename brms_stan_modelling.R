@@ -97,8 +97,8 @@ mod <- brm(bf.mv,
             threads = threading(4), 
             backend = 'cmdstanr',
             output_dir = '/home/david/stanfiles',
-            save_model = '/home/david/stanfiles/brms_mod_data9_threading_Feb2022.stan',
-            file = '/home/david/stanfiles/brms_mod_data9_threading_Feb2022', # change filename to re-compile
+            save_model = '/home/david/stanfiles/brms_mod_data9_threading_Feb15.stan',
+            file = '/home/david/stanfiles/brms_mod_data9_threading_Feb15', # change filename to re-compile
             silent = FALSE)
 t2 <- Sys.time()
 tmod <- t2 - t1
