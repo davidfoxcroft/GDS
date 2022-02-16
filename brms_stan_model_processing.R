@@ -51,7 +51,7 @@ restab1
 #### model summary and fit -----------------
 
 # model results and fit (bayes R-squared)
-mod <- readRDS("/home/david/stanfiles/brms_mod_data8_threading_Feb11.rds")
+mod <- readRDS("~/stanfiles/brms_mod_data8_threading_Feb11.rds")
 mod$version
 mod$formula
 
@@ -271,6 +271,7 @@ restab
 #### check model -----------------
 
 prior_summary(mod)
+
 options(mc.cores = 2)
 ppchecknew <- pp_check(mod, type = "error_binned", resp = "new", ndraws = 100)
 ggsave(plot = ppchecknew, filename = "plots/ppchecknew.png")
@@ -280,6 +281,7 @@ ppcheckrelevant <- pp_check(mod, resp = "relevant", ndraws = 100)
 ggsave(plot = ppcheckrelevant, filename = "plots/ppchecknew.png")
 ppcheckdrinkless <- pp_check(mod, resp = "drinkless", ndraws = 100)
 ggsave(plot = ppcheckdrinkless, filename = "plots/ppchecknew.png")
+
 
 ### MCMC diagnostics
 draws <- as.array(mod, variable = c("b_new_Intercept",
