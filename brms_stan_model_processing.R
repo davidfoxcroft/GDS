@@ -36,9 +36,9 @@ library(gt)
 #data8a <- readRDS("GDS_2018_data8a.rds")
 #data9 <- readRDS("GDS_2018_data9.rds")
 
-restab1 <- data9 %>% 
-  group_by(Final_country,message) %>% 
-  select(Final_country,message,new,believe,relevant,drinkless) %>% 
+restab1 <- data9 %>%
+  group_by(Final_country,message) %>%
+  select(Final_country,message,new,believe,relevant,drinkless) %>%
   summarise(mean_new = mean(new),
             mean_believe = mean(believe),
             mean_relevant = mean(relevant),
@@ -67,68 +67,68 @@ bayesR2tab
 #### Summary fit table -------------------
 # table of fit, fixed and random effects
 fe1 <- mod_sum$fixed[c(1,5:7,2,8:10,3,11:13,4,14:16),] %>%
-  as_tibble(rownames = "Parameter") %>% 
+  as_tibble(rownames = "Parameter") %>%
   select(-Est.Error,
-         -Bulk_ESS) %>% 
-  separate(Parameter, c("outcome","parameter") , "_")  %>% 
+         -Bulk_ESS) %>%
+  separate(Parameter, c("outcome","parameter") , "_")  %>%
   pivot_wider(names_from = outcome,
-              values_from = c(3:7)) %>% 
+              values_from = c(3:7)) %>%
   select(c(1,2,6,10,14,18,
            3,7,11,15,19,
            4,8,12,16,20,
-           5,9,13,17,21)) 
+           5,9,13,17,21))
 
-re1 <- as_tibble(mod_sum$random$`Final_country:message`[1:4,], rownames = "Parameter") %>% 
-  mutate(random_effect = "message:country") %>% 
+re1 <- as_tibble(mod_sum$random$`Final_country:message`[1:4,], rownames = "Parameter") %>%
+  mutate(random_effect = "message:country") %>%
   select(-Est.Error,
-         -Bulk_ESS) %>% 
-  separate(Parameter, c("outcome","sd") , "_") %>% 
+         -Bulk_ESS) %>%
+  separate(Parameter, c("outcome","sd") , "_") %>%
   pivot_wider(names_from = outcome,
-              values_from = c(3:7)) %>% 
-  select(-sd) %>% 
+              values_from = c(3:7)) %>%
+  select(-sd) %>%
   select(c(1,2,6,10,14,18,
            3,7,11,15,19,
            4,8,12,16,20,
-           5,9,13,17,21)) 
+           5,9,13,17,21))
 
-re1a <- as_tibble(mod_sum$random$message[1:4,], rownames = "Parameter") %>% 
-  mutate(random_effect = "message") %>% 
+re1a <- as_tibble(mod_sum$random$message[1:4,], rownames = "Parameter") %>%
+  mutate(random_effect = "message") %>%
   select(-Est.Error,
-         -Bulk_ESS) %>% 
-  separate(Parameter, c("outcome","sd") , "_") %>% 
+         -Bulk_ESS) %>%
+  separate(Parameter, c("outcome","sd") , "_") %>%
   pivot_wider(names_from = outcome,
-              values_from = c(3:7)) %>% 
-  select(-sd) %>% 
+              values_from = c(3:7)) %>%
+  select(-sd) %>%
   select(c(1,2,6,10,14,18,
            3,7,11,15,19,
            4,8,12,16,20,
-           5,9,13,17,21)) 
+           5,9,13,17,21))
 
-re1b <- as_tibble(mod_sum$random$Final_country[1:4,], rownames = "Parameter") %>% 
-  mutate(random_effect = "country") %>% 
+re1b <- as_tibble(mod_sum$random$Final_country[1:4,], rownames = "Parameter") %>%
+  mutate(random_effect = "country") %>%
   select(-Est.Error,
-         -Bulk_ESS) %>% 
-  separate(Parameter, c("outcome","sd") , "_") %>% 
+         -Bulk_ESS) %>%
+  separate(Parameter, c("outcome","sd") , "_") %>%
   pivot_wider(names_from = outcome,
-              values_from = c(3:7)) %>% 
-  select(-sd) %>% 
+              values_from = c(3:7)) %>%
+  select(-sd) %>%
   select(c(1,2,6,10,14,18,
            3,7,11,15,19,
            4,8,12,16,20,
-           5,9,13,17,21)) 
+           5,9,13,17,21))
 
-re2 <- as_tibble(mod_sum$random$`id`[1:4,], rownames = "Parameter") %>% 
-  mutate(random_effect = "id") %>% 
+re2 <- as_tibble(mod_sum$random$`id`[1:4,], rownames = "Parameter") %>%
+  mutate(random_effect = "id") %>%
   select(-Est.Error,
-         -Bulk_ESS) %>% 
-  separate(Parameter, c("outcome","sd") , "_") %>% 
+         -Bulk_ESS) %>%
+  separate(Parameter, c("outcome","sd") , "_") %>%
   pivot_wider(names_from = outcome,
-              values_from = c(3:7)) %>% 
-  select(-sd) %>% 
+              values_from = c(3:7)) %>%
+  select(-sd) %>%
   select(c(1,2,6,10,14,18,
            3,7,11,15,19,
            4,8,12,16,20,
-           5,9,13,17,21)) 
+           5,9,13,17,21))
 
 colnames(fe1) <- c("parameter",
                    "estimate",
@@ -151,7 +151,7 @@ colnames(fe1) <- c("parameter",
                    "UCI",
                    "Rhat",
                    "ESS")
-retab <- rbind(re1,re1a, re1b, re2) 
+retab <- rbind(re1,re1a, re1b, re2)
 colnames(retab) <- c("parameter",
                      "estimate",
                      "LCI",
@@ -175,16 +175,16 @@ colnames(retab) <- c("parameter",
                      "ESS")
 
 
-allres <- rbind(fe1, retab) 
+allres <- rbind(fe1, retab)
 
 
-restab <- as_tibble(allres, 
+restab <- as_tibble(allres,
                     .name_repair = ~ c(
                       "parameter",
                       "n1","n2","n3","n4","n5",
                       "b1","b2","b3","b4","b5",
                       "r1","r2","r3","r4","r5",
-                      "d1","d2","d3","d4","d5")) %>% 
+                      "d1","d2","d3","d4","d5")) %>%
   add_row(parameter = "bayes_R2",
           n1 = bayesR2tab[1,1],
           n2 = bayesR2tab[1,3],
@@ -197,73 +197,73 @@ restab <- as_tibble(allres,
           r3 = bayesR2tab[3,4],
           d1 = bayesR2tab[4,1],
           d2 = bayesR2tab[4,3],
-          d3 = bayesR2tab[4,4]) %>% 
-  gt(rowname_col = "parameter") %>% 
+          d3 = bayesR2tab[4,4]) %>%
+  gt(rowname_col = "parameter") %>%
   fmt_missing(
     columns = 1:21,
-    missing_text = "") %>% 
-  tab_stubhead(label = "") %>% 
+    missing_text = "") %>%
+  tab_stubhead(label = "") %>%
   tab_spanner(
     label = "new",
     columns = c(2:6)
-  ) %>% 
+  ) %>%
   tab_spanner(
     label = "believe",
     columns = c(7:11)
-  ) %>% 
+  ) %>%
   tab_spanner(
     label = "relevant",
     columns = c(12:16)
-  ) %>% 
+  ) %>%
   tab_spanner(
     label = "drinkless",
     columns = c(17:21)
-  ) %>% 
-  fmt_number(columns = c(2:5,7:10,12:15,17:20), 
-             decimals = 2) %>% 
-  fmt_number(columns = c(6,11,16,21), 
-             decimals = 0) %>% 
+  ) %>%
+  fmt_number(columns = c(2:5,7:10,12:15,17:20),
+             decimals = 2) %>%
+  fmt_number(columns = c(6,11,16,21),
+             decimals = 0) %>%
   cols_align(align = c("center"), columns = c(2:21)) %>%
   cols_merge_range(col_begin = vars(n2),
                    col_end = vars(n3),
-                   sep = html(",")) %>% 
+                   sep = html(",")) %>%
   cols_label(n1 = md("*Est*"),
              n2 = md("*95% CI*"),
              n4 = md("*Rhat*"),
-             n5 = md("*ESS*")) %>% 
+             n5 = md("*ESS*")) %>%
   cols_merge_range(col_begin = vars(b2),
                    col_end = vars(b3),
-                   sep = html(",")) %>% 
+                   sep = html(",")) %>%
   cols_label(b1 = md("*Est*"),
              b2 = md("*95% CI*"),
              b4 = md("*Rhat*"),
-             b5 = md("*ESS*")) %>% 
+             b5 = md("*ESS*")) %>%
   cols_merge_range(col_begin = vars(r2),
                    col_end = vars(r3),
-                   sep = html(",")) %>% 
+                   sep = html(",")) %>%
   cols_label(r1 = md("*Est*"),
              r2 = md("*95% CI*"),
              r4 = md("*Rhat*"),
-             r5 = md("*ESS*")) %>% 
+             r5 = md("*ESS*")) %>%
   cols_merge_range(col_begin = vars(d2),
                    col_end = vars(d3),
-                   sep = html(",")) %>% 
+                   sep = html(",")) %>%
   cols_label(d1 = md("*Est*"),
              d2 = md("*95% CI*"),
              d4 = md("*Rhat*"),
-             d5 = md("*ESS*")) %>% 
+             d5 = md("*ESS*")) %>%
   tab_row_group(group = "Random Effects (Est = sd)",
-                rows = parameter == "message" | 
+                rows = parameter == "message" |
                   parameter == "country" |
                   parameter == "message:country" |
-                  parameter == "id") %>% 
+                  parameter == "id") %>%
   tab_row_group(group = "Population Effects",
-                rows = parameter == "Intercept" | 
+                rows = parameter == "Intercept" |
                   parameter == "age" |
                   parameter == "AUDIT" |
-                  parameter == "sex1") %>% 
+                  parameter == "sex1") %>%
   tab_row_group(group = "Model Fit",
-                rows = parameter == "bayes_R2") 
+                rows = parameter == "bayes_R2")
 restab
 
 
@@ -272,98 +272,99 @@ restab
 
 prior_summary(mod)
 
-options(mc.cores = 2)
-ppchecknew <- pp_check(mod, type = "error_binned", resp = "new", ndraws = 100)
-ggsave(plot = ppchecknew, filename = "plots/ppchecknew.png")
-ppcheckbelieve <- pp_check(mod, resp = "believe", ndraws = 100)
-ggsave(plot = ppcheckbelieve, filename = "plots/ppchecknew.png")
-ppcheckrelevant <- pp_check(mod, resp = "relevant", ndraws = 100)
-ggsave(plot = ppcheckrelevant, filename = "plots/ppchecknew.png")
-ppcheckdrinkless <- pp_check(mod, resp = "drinkless", ndraws = 100)
-ggsave(plot = ppcheckdrinkless, filename = "plots/ppchecknew.png")
-
+options(mc.cores = 4)
+ppchecknew <- brms::pp_check(mod, type = "error_binned", resp = "new", ndraws = 9)
+ggplot2::ggsave(plot = ppchecknew, filename = "plots/ppchecknew.png")
+ppcheckbelieve <- brms::pp_check(mod, type = "error_binned", resp = "believe", ndraws = 9)
+ggplot2::ggsave(plot = ppcheckbelieve, filename = "plots/ppcheckbelieve.png")
+ppcheckrelevant <- brms::pp_check(mod, type = "error_binned", resp = "relevant", ndraws = 9)
+ggplot2::ggsave(plot = ppcheckrelevant, filename = "plots/ppcheckrelevant.png")
+ppcheckdrinkless <- brms::pp_check(mod, type = "error_binned", resp = "drinkless", ndraws = 9)
+ggplot2::ggsave(plot = ppcheckdrinkless, filename = "plots/ppcheckdrinkless.png")
 
 ### MCMC diagnostics
 draws <- as.array(mod, variable = c("b_new_Intercept",
                                 "b_believe_Intercept",
                                 "b_relevant_Intercept",
-                                "b_drinkless_Intercept",      
-                                "b_new_age", 
+                                "b_drinkless_Intercept",
+                                "b_new_age",
                                 "b_new_AUDIT_SCORE",
                                 "b_new_sex1",
                                 "b_believe_age",
-                                "b_believe_AUDIT_SCORE", 
-                                "b_believe_sex1", 
-                                "b_relevant_age", 
+                                "b_believe_AUDIT_SCORE",
+                                "b_believe_sex1",
+                                "b_relevant_age",
                                 "b_relevant_AUDIT_SCORE",
-                                "b_relevant_sex1", 
+                                "b_relevant_sex1",
                                 "b_drinkless_age",
-                                "b_drinkless_AUDIT_SCORE", 
+                                "b_drinkless_AUDIT_SCORE",
                                 "b_drinkless_sex1",
                                 "lp__"))
 lp <- bayesplot::log_posterior(mod)
 np <- bayesplot::nuts_params(mod)
 bayesplot::color_scheme_set("brightblue")
-bayesplot::mcmc_parcoord(draws, alpha = 0.05, 
-                         np = np, 
+bayesplot::mcmc_parcoord(draws, alpha = 0.05,
+                         np = np,
                          transform = function(x) {(x - mean(x)) / sd(x)},
                          pars = c("b_new_Intercept",
                                   "b_believe_Intercept",
                                   "b_relevant_Intercept",
                                   "b_drinkless_Intercept",
                                   "lp__"))
-ggsave(filename = "GDS/plots/bayesplot_mcmc_parcoord_Intercepts.png")
-bayesplot::mcmc_parcoord(draws, alpha = 0.05, 
+ggplot2::ggsave(filename = "plots/bayesplot_mcmc_parcoord_Intercepts.png")
+
+bayesplot::mcmc_parcoord(draws, alpha = 0.05,
                          np = np,
                          transform = function(x) {(x - mean(x)) / sd(x)},
                          pars = c("b_new_age",
                                   "b_new_AUDIT_SCORE",
                                   "b_new_sex1",
                                   "b_believe_age",
-                                  "b_believe_AUDIT_SCORE", 
-                                  "b_believe_sex1", 
-                                  "b_relevant_age", 
+                                  "b_believe_AUDIT_SCORE",
+                                  "b_believe_sex1",
+                                  "b_relevant_age",
                                   "b_relevant_AUDIT_SCORE",
-                                  "b_relevant_sex1", 
+                                  "b_relevant_sex1",
                                   "b_drinkless_age",
-                                  "b_drinkless_AUDIT_SCORE", 
-                                  "b_drinkless_sex1"))
-ggsave(filename = "GDS/plots/bayesplot_mcmc_parcoord_betas.png")
+                                  "b_drinkless_AUDIT_SCORE",
+                                  "b_drinkless_sex1")) +
+  ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust=1))
+ggplot2::ggsave(filename = "plots/bayesplot_mcmc_parcoord_betas.png")
 
-bayesplot::mcmc_areas(draws, 
+bayesplot::mcmc_areas(draws,
                       pars = c("b_new_age",
                                "b_new_AUDIT_SCORE",
                                "b_new_sex1",
                                "b_believe_age",
-                               "b_believe_AUDIT_SCORE", 
-                               "b_believe_sex1", 
-                               "b_relevant_age", 
+                               "b_believe_AUDIT_SCORE",
+                               "b_believe_sex1",
+                               "b_relevant_age",
                                "b_relevant_AUDIT_SCORE",
-                               "b_relevant_sex1", 
+                               "b_relevant_sex1",
                                "b_drinkless_age",
-                               "b_drinkless_AUDIT_SCORE", 
+                               "b_drinkless_AUDIT_SCORE",
                                "b_drinkless_sex1"),
                       prob = 0.8, # 80% intervals
                       prob_outer = 0.99, # 99%
                       point_est = "mean"
 )
-ggsave(filename = "GDS/plots/bayesplot_mcmc_areas_betas.png")
+ggplot2::ggsave(filename = "plots/bayesplot_mcmc_areas_betas.png")
 
-bayesplot::mcmc_hist(draws, 
+bayesplot::mcmc_hist(draws,
                      pars = c("b_new_age",
                               "b_new_AUDIT_SCORE",
                               "b_new_sex1",
                               "b_believe_age",
-                              "b_believe_AUDIT_SCORE", 
-                              "b_believe_sex1", 
-                              "b_relevant_age", 
+                              "b_believe_AUDIT_SCORE",
+                              "b_believe_sex1",
+                              "b_relevant_age",
                               "b_relevant_AUDIT_SCORE",
-                              "b_relevant_sex1", 
+                              "b_relevant_sex1",
                               "b_drinkless_age",
-                              "b_drinkless_AUDIT_SCORE", 
+                              "b_drinkless_AUDIT_SCORE",
                               "b_drinkless_sex1")
 )
-ggsave(filename = "GDS/plots/bayesplot_mcmc_hist_betas.png")
+ggplot2::ggsave(filename = "plots/bayesplot_mcmc_hist_betas.png")
 
 bayesplot::color_scheme_set("viridis")
 bayesplot::mcmc_trace(draws, pars = c("b_new_Intercept",
@@ -374,16 +375,16 @@ bayesplot::mcmc_trace(draws, pars = c("b_new_Intercept",
                                       "b_new_AUDIT_SCORE",
                                       "b_new_sex1",
                                       "b_believe_age",
-                                      "b_believe_AUDIT_SCORE", 
-                                      "b_believe_sex1", 
-                                      "b_relevant_age", 
+                                      "b_believe_AUDIT_SCORE",
+                                      "b_believe_sex1",
+                                      "b_relevant_age",
                                       "b_relevant_AUDIT_SCORE",
-                                      "b_relevant_sex1", 
+                                      "b_relevant_sex1",
                                       "b_drinkless_age",
-                                      "b_drinkless_AUDIT_SCORE", 
+                                      "b_drinkless_AUDIT_SCORE",
                                       "b_drinkless_sex1",
                                       "lp__"))
-ggsave(filename = "GDS/plots/bayesplot_mcmc_trace_betas_lp.png")
+ggplot2::ggsave(filename = "plots/bayesplot_mcmc_trace_betas_lp.png")
 
 rhats <- bayesplot::rhat(mod, pars = c("b_new_Intercept",
                                        "b_believe_Intercept",
@@ -393,20 +394,20 @@ rhats <- bayesplot::rhat(mod, pars = c("b_new_Intercept",
                                        "b_new_AUDIT_SCORE",
                                        "b_new_sex1",
                                        "b_believe_age",
-                                       "b_believe_AUDIT_SCORE", 
-                                       "b_believe_sex1", 
-                                       "b_relevant_age", 
+                                       "b_believe_AUDIT_SCORE",
+                                       "b_believe_sex1",
+                                       "b_relevant_age",
                                        "b_relevant_AUDIT_SCORE",
-                                       "b_relevant_sex1", 
+                                       "b_relevant_sex1",
                                        "b_drinkless_age",
-                                       "b_drinkless_AUDIT_SCORE", 
+                                       "b_drinkless_AUDIT_SCORE",
                                        "b_drinkless_sex1",
                                        "lp__"))
 
 print(rhats)
 bayesplot::color_scheme_set("brightblue") # see help("color_scheme_set")
 bayesplot::mcmc_rhat(rhats) + bayesplot::yaxis_text(hjust = 1)
-ggsave(filename = "GDS/plots/bayesplot_mcmc_rhats_betas_lp.png")
+ggplot2::ggsave(filename = "plots/bayesplot_mcmc_rhats_betas_lp.png")
 
 ratios_mod <- bayesplot::neff_ratio(mod, pars = c("b_new_Intercept",
                                                   "b_believe_Intercept",
@@ -416,18 +417,18 @@ ratios_mod <- bayesplot::neff_ratio(mod, pars = c("b_new_Intercept",
                                                   "b_new_AUDIT_SCORE",
                                                   "b_new_sex1",
                                                   "b_believe_age",
-                                                  "b_believe_AUDIT_SCORE", 
-                                                  "b_believe_sex1", 
-                                                  "b_relevant_age", 
+                                                  "b_believe_AUDIT_SCORE",
+                                                  "b_believe_sex1",
+                                                  "b_relevant_age",
                                                   "b_relevant_AUDIT_SCORE",
-                                                  "b_relevant_sex1", 
+                                                  "b_relevant_sex1",
                                                   "b_drinkless_age",
-                                                  "b_drinkless_AUDIT_SCORE", 
+                                                  "b_drinkless_AUDIT_SCORE",
                                                   "b_drinkless_sex1",
                                                   "lp__"))
 print(ratios_mod)
 bayesplot::mcmc_neff(ratios_mod, size = 2)
-ggsave(filename = "GDS/plots/bayesplot_mcmc_neff_betas_lp.png")
+ggplot2::ggsave(filename = "plots/bayesplot_mcmc_neff_betas_lp.png")
 
 bayesplot::mcmc_acf(draws, pars = c("b_new_Intercept",
                                     "b_believe_Intercept",
@@ -437,57 +438,55 @@ bayesplot::mcmc_acf(draws, pars = c("b_new_Intercept",
                                     "b_new_AUDIT_SCORE",
                                     "b_new_sex1",
                                     "b_believe_age",
-                                    "b_believe_AUDIT_SCORE", 
-                                    "b_believe_sex1", 
-                                    "b_relevant_age", 
+                                    "b_believe_AUDIT_SCORE",
+                                    "b_believe_sex1",
+                                    "b_relevant_age",
                                     "b_relevant_AUDIT_SCORE",
-                                    "b_relevant_sex1", 
+                                    "b_relevant_sex1",
                                     "b_drinkless_age",
-                                    "b_drinkless_AUDIT_SCORE", 
+                                    "b_drinkless_AUDIT_SCORE",
                                     "b_drinkless_sex1",
                                     "lp__"),
                     lags = 100)
-ggsave(filename = "GDS/plots/bayesplot_mcmc_acf_betas_lp.png")
+ggplot2::ggsave(filename = "plots/bayesplot_mcmc_acf_betas_lp.png")
 
 bayesplot::mcmc_nuts_divergence(np, bayesplot::log_posterior(mod))
-ggsave(filename = "GDS/plots/bayesplot_mcmc_nuts_divergence.png")
+ggplot2::ggsave(filename = "plots/bayesplot_mcmc_nuts_divergence.png")
 
 bayesplot::mcmc_pairs(draws, np = np, pars = c("b_new_Intercept",
                                                "b_believe_Intercept",
                                                "b_relevant_Intercept",
                                                "b_drinkless_Intercept",
-                                               "lp__"), 
+                                               "lp__"),
                       off_diag_args = list(size = 0.75))
-ggsave(filename = "GDS/plots/bayesplot_mcmc_pairs_Intercepts.png")
+ggplot2::ggsave(filename = "plots/bayesplot_mcmc_pairs_Intercepts.png")
 
 bayesplot::mcmc_pairs(draws, np = np, pars = c("b_new_age",
                                                "b_new_AUDIT_SCORE",
                                                "b_new_sex1",
                                                "b_believe_age",
-                                               "b_believe_AUDIT_SCORE", 
-                                               "b_believe_sex1", 
-                                               "lp__"), 
+                                               "b_believe_AUDIT_SCORE",
+                                               "b_believe_sex1",
+                                               "lp__"),
                       off_diag_args = list(size = 0.75))
-ggsave(filename = "GDS/plots/bayesplot_mcmc_pairs_betas_new_believe_lp.png")
+ggplot2::ggsave(filename = "plots/bayesplot_mcmc_pairs_betas_new_believe_lp.png")
 
-bayesplot::mcmc_pairs(draws, np = np, pars = c("b_relevant_age", 
+bayesplot::mcmc_pairs(draws, np = np, pars = c("b_relevant_age",
                                                "b_relevant_AUDIT_SCORE",
-                                               "b_relevant_sex1", 
+                                               "b_relevant_sex1",
                                                "b_drinkless_age",
-                                               "b_drinkless_AUDIT_SCORE", 
+                                               "b_drinkless_AUDIT_SCORE",
                                                "b_drinkless_sex1",
-                                               "lp__"), 
+                                               "lp__"),
                       off_diag_args = list(size = 0.75))
-ggsave(filename = "GDS/plots/bayesplot_mcmc_pairs_betas_relevant_drinkless_lp.png")
-
-
+ggplot2::ggsave(filename = "plots/bayesplot_mcmc_pairs_betas_relevant_drinkless_lp.png")
 
 
 #### model results wrangling for fitted estimates -----------------
 
 conditions <- data.frame(Final_country = levels(data8$Final_country), cond__ = levels(data8$Final_country))
-p1 <- plot(conditional_effects(mod, 
-                      effects = "message", 
+p1 <- plot(conditional_effects(mod,
+                      effects = "message",
                       method = "fitted",
                       conditions = conditions,
                       re_form = "~(1 | message * Final_country)",
@@ -496,19 +495,19 @@ p1 <- plot(conditional_effects(mod,
            plot = F)
 
 
-p1a <- p1$new.new_message$data %>% 
+p1a <- p1$new.new_message$data %>%
   mutate(impact = "new")
-p1b <- p1$believe.believe_message$data %>% 
+p1b <- p1$believe.believe_message$data %>%
   mutate(impact = "believe")
-p1c <- p1$relevant.relevant_message$data %>% 
+p1c <- p1$relevant.relevant_message$data %>%
   mutate(impact = "relevant")
-p1d <- p1$drinkless.drinkless_message$data %>% 
+p1d <- p1$drinkless.drinkless_message$data %>%
   mutate(impact = "drinkless")
 
 plotdat <- rbind(p1a,p1b,p1c,p1d)
 
-plotdat <- as_tibble(plotdat) %>% 
-  mutate(impact = as.factor(impact)) 
+plotdat <- as_tibble(plotdat) %>%
+  mutate(impact = as.factor(impact))
 glimpse(plotdat)
 
 levels(plotdat$impact) = c("new",
@@ -516,15 +515,15 @@ levels(plotdat$impact) = c("new",
                            "relevant",
                            "drinkless")
 
-plotdat <- plotdat %>% 
-  ungroup() %>% 
+plotdat <- plotdat %>%
+  ungroup() %>%
   group_by(message,impact) %>%
   mutate(lower = quantile(estimate__, probs = .15),
-            upper = quantile(estimate__, probs = .85)) %>% 
-  ungroup() %>% 
+            upper = quantile(estimate__, probs = .85)) %>%
+  ungroup() %>%
   mutate(filter__ = ifelse(estimate__ < lower | estimate__ > upper, TRUE, FALSE))
 
-plotdat_s <- plotdat %>% 
+plotdat_s <- plotdat %>%
   filter(filter__ == "TRUE")
 
 
@@ -533,17 +532,17 @@ plotdat_s <- plotdat %>%
 plot1 <- ggplot(data = plotdat, aes(x = Final_country,
                                   y = estimate__)) +
   facet_grid(vars(impact), vars(message), scales = "free") +
-  geom_hline(aes(yintercept = upper), 
-             colour = "red", 
+  geom_hline(aes(yintercept = upper),
+             colour = "red",
              alpha = 0.2) +
-  geom_hline(aes(yintercept = lower), 
-             colour = "green", 
+  geom_hline(aes(yintercept = lower),
+             colour = "green",
              alpha = 0.2) +
-  geom_point(data = plotdat, 
+  geom_point(data = plotdat,
              aes(x = Final_country,
                  y = estimate__),
-             colour = alpha("grey", 0.5)) + 
-  geom_point(data = plotdat_s, 
+             colour = alpha("grey", 0.5)) +
+  geom_point(data = plotdat_s,
              aes(x = Final_country,
                  y = estimate__,
                  colour = Final_country),
@@ -561,7 +560,7 @@ plot1 <- ggplot(data = plotdat, aes(x = Final_country,
         strip.background = element_rect(colour = "grey50", fill = "grey50"),
         strip.text = element_text(colour = "white", size = 11, face = "bold"),
         legend.title = element_blank(),
-        legend.position = "bottom") 
+        legend.position = "bottom")
 
 
 
@@ -593,10 +592,10 @@ preddat1.relevant <- preddat1[,,3]
 preddat1.drinkless <- preddat1[,,4]
 glimpse(preddat1.new)
 
-preddat2a <- apply(preddat1.new, 2, mean) # calculate p(Yes) 
-preddat2b <- apply(preddat1.believe, 2, mean) # calculate p(Yes) 
-preddat2c <- apply(preddat1.relevant, 2, mean) # calculate p(Yes) 
-preddat2d <- apply(preddat1.drinkless, 2, mean) # calculate p(Yes) 
+preddat2a <- apply(preddat1.new, 2, mean) # calculate p(Yes)
+preddat2b <- apply(preddat1.believe, 2, mean) # calculate p(Yes)
+preddat2c <- apply(preddat1.relevant, 2, mean) # calculate p(Yes)
+preddat2d <- apply(preddat1.drinkless, 2, mean) # calculate p(Yes)
 
 datarun2 <- cbind(newdat, pYes.new = preddat2a,
                   pYes.believe = preddat2b,
@@ -604,12 +603,12 @@ datarun2 <- cbind(newdat, pYes.new = preddat2a,
                   pYes.drinkless = preddat2d)
 dplyr::glimpse(datarun2)
 
-plotdat2 <- datarun2 %>% 
-  ungroup() %>% 
+plotdat2 <- datarun2 %>%
+  ungroup() %>%
   pivot_longer(cols = c(pYes.new:pYes.drinkless),
                names_to = "impact",
-               values_to = "pYes") %>% 
-  mutate(impact = as.factor(impact)) %>% 
+               values_to = "pYes") %>%
+  mutate(impact = as.factor(impact)) %>%
   mutate(impact = fct_recode(impact, "new" = "pYes.new",
                              "believe" = "pYes.believe",
                              "relevant" = "pYes.relevant",
@@ -621,27 +620,27 @@ levels(plotdat2$impact) = c("new",
                            "relevant",
                            "drinkless")
 
-plotdat2 <- plotdat2 %>% 
-  ungroup() %>% 
+plotdat2 <- plotdat2 %>%
+  ungroup() %>%
   group_by(message,impact) %>%
   mutate(lower = quantile(pYes, probs = .15),
-         upper = quantile(pYes, probs = .85)) %>% 
-  ungroup() %>% 
-  mutate(filter__ = ifelse(pYes < lower | pYes > upper, TRUE, FALSE)) %>% 
-  group_by(message,impact,Final_country) %>% 
+         upper = quantile(pYes, probs = .85)) %>%
+  ungroup() %>%
+  mutate(filter__ = ifelse(pYes < lower | pYes > upper, TRUE, FALSE)) %>%
+  group_by(message,impact,Final_country) %>%
   summarise(ll = quantile(pYes, 0.15),
             l = quantile(pYes, 0.30),
             med = quantile(pYes, 0.5),
             h = quantile(pYes, 0.70),
             hh = quantile(pYes, 0.85),
-            pYes = mean(pYes), 
-            lower = mean(lower), 
-            upper = mean(upper), 
+            pYes = mean(pYes),
+            lower = mean(lower),
+            upper = mean(upper),
             filter__ = median(filter__)
 )
-  
 
-plotdat_s <- plotdat2 %>% 
+
+plotdat_s <- plotdat2 %>%
   filter(filter__ == "1")
 
 glimpse(plotdat_s)
@@ -655,28 +654,28 @@ glimpse(plotdat3)
 
 # results tables for posterior predicted values - needs polish
 myft <- flextable(
-  subset(plotdat3,impact == "new"), 
+  subset(plotdat3,impact == "new"),
   col_keys = c("message", "Final_country", "pYes", "ll", "hh" ))
 myft <- set_header_labels( myft, Final_country = "Country", ll = "15%ile", hh = "85%ile" )
 myft <- autofit(myft)
 myft
 
 myft <- flextable(
-  subset(plotdat3,impact == "believe"), 
+  subset(plotdat3,impact == "believe"),
   col_keys = c("message", "Final_country", "pYes", "ll", "hh" ))
 myft <- set_header_labels( myft, Final_country = "Country", ll = "15%ile", hh = "85%ile" )
 myft <- autofit(myft)
 myft
 
 myft <- flextable(
-  subset(plotdat3,impact == "relevant"), 
+  subset(plotdat3,impact == "relevant"),
   col_keys = c("message", "Final_country", "pYes", "ll", "hh" ))
 myft <- set_header_labels( myft, Final_country = "Country", ll = "15%ile", hh = "85%ile" )
 myft <- autofit(myft)
 myft
 
 myft <- flextable(
-  subset(plotdat3,impact == "drinkless"), 
+  subset(plotdat3,impact == "drinkless"),
   col_keys = c("message", "Final_country", "pYes", "ll", "hh" ))
 myft <- set_header_labels( myft, Final_country = "Country", ll = "15%ile", hh = "85%ile" )
 myft <- autofit(myft)
@@ -685,7 +684,7 @@ myft
 
 #### plot results posterior predictions -----------------
 
-plot2 <- ggplot(data = plotdat2, 
+plot2 <- ggplot(data = plotdat2,
                 aes(x = Final_country,
                     y = pYes,
                     text = paste(Final_country,
@@ -703,7 +702,7 @@ plot2 <- ggplot(data = plotdat2,
              aes(x = Final_country,
                  y = med),
              colour = alpha("grey", 0.5)) +
-  geom_pointrange(data = plotdat_s, 
+  geom_pointrange(data = plotdat_s,
              aes(x = Final_country,
                  y = med,
                  ymin = ll,
@@ -722,14 +721,14 @@ plot2 <- ggplot(data = plotdat2,
         strip.background = element_rect(colour = "grey50", fill = "grey50"),
         strip.text = element_text(colour = "white", size = 11, face = "bold"),
         legend.title = element_blank(),
-        legend.position = "bottom") 
+        legend.position = "bottom")
 
 dev.off()
 plot2
 
 
 # plots to plotly
-subp <- plotly::ggplotly(plot2, tooltip = c("text")) %>% 
+subp <- plotly::ggplotly(plot2, tooltip = c("text")) %>%
   plotly::layout(legend = list(orientation = "h", y = -0.02))
 subp
 
@@ -742,7 +741,7 @@ newdat.merged
 dplyr::glimpse(newdat.merged)
 
 
-colnames(newdat.merged) <- c("country", "message", 
+colnames(newdat.merged) <- c("country", "message",
                              "sex", "age",
                              "AUDIT",
                              "new", "believe",
@@ -750,9 +749,9 @@ colnames(newdat.merged) <- c("country", "message",
 
 dplyr::glimpse(newdat.merged)
 
-restab2 <- newdat.merged %>% 
-  group_by(country,message) %>% 
-  select(country,message,new,believe,relevant,drinkless) %>% 
+restab2 <- newdat.merged %>%
+  group_by(country,message) %>%
+  select(country,message,new,believe,relevant,drinkless) %>%
   summarise(mean_new = mean(new),
             mean_believe = mean(believe),
             mean_relevant = mean(relevant),
@@ -760,7 +759,7 @@ restab2 <- newdat.merged %>%
 restab2
 glimpse(cbind(restab1,restab2))
 
-restab <- cbind(restab1,restab2) %>% 
+restab <- cbind(restab1,restab2) %>%
   select("Country" = "Final_country",
          "message" = "message...2",
          "new, observed data" = "mean_new...3",
@@ -770,7 +769,7 @@ restab <- cbind(restab1,restab2) %>%
          "relevant, observed data" = "mean_relevant...5",
          "relevant, predicted probability" = "mean_relevant...11",
          "drinkless, observed data" = "mean_drinkless...6",
-         "drinkless, predicted probability" = "mean_drinkless...12") %>% 
+         "drinkless, predicted probability" = "mean_drinkless...12") %>%
   pivot_wider(names_from = message,
               values_from = c("new, observed data",
                               "new, predicted probability",
@@ -779,17 +778,17 @@ restab <- cbind(restab1,restab2) %>%
                               "relevant, observed data",
                               "relevant, predicted probability",
                               "drinkless, observed data",
-                              "drinkless, predicted probability")) %>% 
+                              "drinkless, predicted probability")) %>%
   ungroup()
 
 # appx table for 'new'
-restab %>% 
-  select(Country,contains("new")) %>% 
-  mutate(Country = as.character(Country)) %>% 
-  select(1,2,9,3,10,4,11,5,12,6,13,7,14,8,15) %>% 
-  gt(rowname_col = "Country") %>% 
-  fmt_percent(columns = c(2:15), decimals = 1) %>% 
-  cols_align(align = "center", columns = c(2:15)) %>% 
+restab %>%
+  select(Country,contains("new")) %>%
+  mutate(Country = as.character(Country)) %>%
+  select(1,2,9,3,10,4,11,5,12,6,13,7,14,8,15) %>%
+  gt(rowname_col = "Country") %>%
+  fmt_percent(columns = c(2:15), decimals = 1) %>%
+  cols_align(align = "center", columns = c(2:15)) %>%
   cols_label("new, observed data_calories" = "observed data",
              "new, observed data_cancer" = "observed data",
              "new, observed data_freedays" = "observed data",
@@ -803,27 +802,27 @@ restab %>%
              "new, predicted probability_heart" = "predicted probability",
              "new, predicted probability_liver" = "predicted probability",
              "new, predicted probability_myth" = "predicted probability",
-             "new, predicted probability_violence" = "predicted probability") %>% 
-  tab_spanner(label = "calories", columns = c(2,3)) %>% 
-  tab_spanner(label = "cancer", columns = c(4,5)) %>% 
-  tab_spanner(label = "freedays", columns = c(6,7)) %>% 
-  tab_spanner(label = "heart", columns = c(8,9)) %>% 
-  tab_spanner(label = "liver", columns = c(10,11)) %>% 
-  tab_spanner(label = "myth", columns = c(12,13)) %>% 
-  tab_spanner(label = "violence", columns = c(14,15)) %>% 
-  tab_header(title = "Observed data and predicted probability by country for \'new\' measure") %>% 
+             "new, predicted probability_violence" = "predicted probability") %>%
+  tab_spanner(label = "calories", columns = c(2,3)) %>%
+  tab_spanner(label = "cancer", columns = c(4,5)) %>%
+  tab_spanner(label = "freedays", columns = c(6,7)) %>%
+  tab_spanner(label = "heart", columns = c(8,9)) %>%
+  tab_spanner(label = "liver", columns = c(10,11)) %>%
+  tab_spanner(label = "myth", columns = c(12,13)) %>%
+  tab_spanner(label = "violence", columns = c(14,15)) %>%
+  tab_header(title = "Observed data and predicted probability by country for \'new\' measure") %>%
   tab_footnote(footnote = "predicted probability estimates are aggregates across equally weighted age, sex and AUDIT score categories, whereas observed data may be skewed to particular demographic groups ",
-               locations = cells_title(groups = c("title"))) %>% 
+               locations = cells_title(groups = c("title"))) %>%
   gtsave("appxtab_new.pdf")
 
 # appx table for 'believe'
-restab %>% 
-  select(Country,contains("believe")) %>% 
-  mutate(Country = as.character(Country)) %>% 
-  select(1,2,9,3,10,4,11,5,12,6,13,7,14,8,15) %>% 
-  gt(rowname_col = "Country") %>% 
-  fmt_percent(columns = c(2:15), decimals = 1) %>% 
-  cols_align(align = "center", columns = c(2:15)) %>% 
+restab %>%
+  select(Country,contains("believe")) %>%
+  mutate(Country = as.character(Country)) %>%
+  select(1,2,9,3,10,4,11,5,12,6,13,7,14,8,15) %>%
+  gt(rowname_col = "Country") %>%
+  fmt_percent(columns = c(2:15), decimals = 1) %>%
+  cols_align(align = "center", columns = c(2:15)) %>%
   cols_label("believe, observed data_calories" = "observed data",
              "believe, observed data_cancer" = "observed data",
              "believe, observed data_freedays" = "observed data",
@@ -837,26 +836,26 @@ restab %>%
              "believe, predicted probability_heart" = "predicted probability",
              "believe, predicted probability_liver" = "predicted probability",
              "believe, predicted probability_myth" = "predicted probability",
-             "believe, predicted probability_violence" = "predicted probability") %>% 
-  tab_spanner(label = "calories", columns = c(2,3)) %>% 
-  tab_spanner(label = "cancer", columns = c(4,5)) %>% 
-  tab_spanner(label = "freedays", columns = c(6,7)) %>% 
-  tab_spanner(label = "heart", columns = c(8,9)) %>% 
-  tab_spanner(label = "liver", columns = c(10,11)) %>% 
-  tab_spanner(label = "myth", columns = c(12,13)) %>% 
-  tab_spanner(label = "violence", columns = c(14,15)) %>% 
-  tab_header(title = "Observed data and predicted probability by country for \'believe\' measure") %>% 
+             "believe, predicted probability_violence" = "predicted probability") %>%
+  tab_spanner(label = "calories", columns = c(2,3)) %>%
+  tab_spanner(label = "cancer", columns = c(4,5)) %>%
+  tab_spanner(label = "freedays", columns = c(6,7)) %>%
+  tab_spanner(label = "heart", columns = c(8,9)) %>%
+  tab_spanner(label = "liver", columns = c(10,11)) %>%
+  tab_spanner(label = "myth", columns = c(12,13)) %>%
+  tab_spanner(label = "violence", columns = c(14,15)) %>%
+  tab_header(title = "Observed data and predicted probability by country for \'believe\' measure") %>%
   tab_footnote(footnote = "predicted probability estimates are aggregates across equally weighted age, sex and AUDIT score categories, whereas observed data may be skewed to particular demographic groups ",
-               locations = cells_title(groups = c("title"))) %>% 
+               locations = cells_title(groups = c("title"))) %>%
   gtsave("appxtab_believe.pdf")
 
-restab %>% 
-  select(Country,contains("relevant")) %>% 
-  mutate(Country = as.character(Country)) %>% 
-  select(1,2,9,3,10,4,11,5,12,6,13,7,14,8,15) %>% 
-  gt(rowname_col = "Country") %>% 
-  fmt_percent(columns = c(2:15), decimals = 1) %>% 
-  cols_align(align = "center", columns = c(2:15)) %>% 
+restab %>%
+  select(Country,contains("relevant")) %>%
+  mutate(Country = as.character(Country)) %>%
+  select(1,2,9,3,10,4,11,5,12,6,13,7,14,8,15) %>%
+  gt(rowname_col = "Country") %>%
+  fmt_percent(columns = c(2:15), decimals = 1) %>%
+  cols_align(align = "center", columns = c(2:15)) %>%
   cols_label("relevant, observed data_calories" = "observed data",
              "relevant, observed data_cancer" = "observed data",
              "relevant, observed data_freedays" = "observed data",
@@ -870,27 +869,27 @@ restab %>%
              "relevant, predicted probability_heart" = "predicted probability",
              "relevant, predicted probability_liver" = "predicted probability",
              "relevant, predicted probability_myth" = "predicted probability",
-             "relevant, predicted probability_violence" = "predicted probability") %>% 
-  tab_spanner(label = "calories", columns = c(2,3)) %>% 
-  tab_spanner(label = "cancer", columns = c(4,5)) %>% 
-  tab_spanner(label = "freedays", columns = c(6,7)) %>% 
-  tab_spanner(label = "heart", columns = c(8,9)) %>% 
-  tab_spanner(label = "liver", columns = c(10,11)) %>% 
-  tab_spanner(label = "myth", columns = c(12,13)) %>% 
-  tab_spanner(label = "violence", columns = c(14,15)) %>% 
-  tab_header(title = "Observed data and predicted probability by country for \'relevant\' measure") %>% 
+             "relevant, predicted probability_violence" = "predicted probability") %>%
+  tab_spanner(label = "calories", columns = c(2,3)) %>%
+  tab_spanner(label = "cancer", columns = c(4,5)) %>%
+  tab_spanner(label = "freedays", columns = c(6,7)) %>%
+  tab_spanner(label = "heart", columns = c(8,9)) %>%
+  tab_spanner(label = "liver", columns = c(10,11)) %>%
+  tab_spanner(label = "myth", columns = c(12,13)) %>%
+  tab_spanner(label = "violence", columns = c(14,15)) %>%
+  tab_header(title = "Observed data and predicted probability by country for \'relevant\' measure") %>%
   tab_footnote(footnote = "predicted probability estimates are aggregates across equally weighted age, sex and AUDIT score categories, whereas observed data may be skewed to particular demographic groups ",
-               locations = cells_title(groups = c("title"))) %>% 
+               locations = cells_title(groups = c("title"))) %>%
   gtsave("appxtab_relevant.pdf")
 
 # appx table for 'drinkless'
-restab %>% 
-  select(Country,contains("drinkless")) %>% 
-  mutate(Country = as.character(Country)) %>% 
-  select(1,2,9,3,10,4,11,5,12,6,13,7,14,8,15) %>% 
-  gt(rowname_col = "Country") %>% 
-  fmt_percent(columns = c(2:15), decimals = 1) %>% 
-  cols_align(align = "center", columns = c(2:15)) %>% 
+restab %>%
+  select(Country,contains("drinkless")) %>%
+  mutate(Country = as.character(Country)) %>%
+  select(1,2,9,3,10,4,11,5,12,6,13,7,14,8,15) %>%
+  gt(rowname_col = "Country") %>%
+  fmt_percent(columns = c(2:15), decimals = 1) %>%
+  cols_align(align = "center", columns = c(2:15)) %>%
   cols_label("drinkless, observed data_calories" = "observed data",
              "drinkless, observed data_cancer" = "observed data",
              "drinkless, observed data_freedays" = "observed data",
@@ -904,99 +903,99 @@ restab %>%
              "drinkless, predicted probability_heart" = "predicted probability",
              "drinkless, predicted probability_liver" = "predicted probability",
              "drinkless, predicted probability_myth" = "predicted probability",
-             "drinkless, predicted probability_violence" = "predicted probability") %>% 
-  tab_spanner(label = "calories", columns = c(2,3)) %>% 
-  tab_spanner(label = "cancer", columns = c(4,5)) %>% 
-  tab_spanner(label = "freedays", columns = c(6,7)) %>% 
-  tab_spanner(label = "heart", columns = c(8,9)) %>% 
-  tab_spanner(label = "liver", columns = c(10,11)) %>% 
-  tab_spanner(label = "myth", columns = c(12,13)) %>% 
-  tab_spanner(label = "violence", columns = c(14,15)) %>% 
-  tab_header(title = "Observed data and predicted probability by country for \'drinkless\' measure") %>% 
+             "drinkless, predicted probability_violence" = "predicted probability") %>%
+  tab_spanner(label = "calories", columns = c(2,3)) %>%
+  tab_spanner(label = "cancer", columns = c(4,5)) %>%
+  tab_spanner(label = "freedays", columns = c(6,7)) %>%
+  tab_spanner(label = "heart", columns = c(8,9)) %>%
+  tab_spanner(label = "liver", columns = c(10,11)) %>%
+  tab_spanner(label = "myth", columns = c(12,13)) %>%
+  tab_spanner(label = "violence", columns = c(14,15)) %>%
+  tab_header(title = "Observed data and predicted probability by country for \'drinkless\' measure") %>%
   tab_footnote(footnote = "predicted probability estimates are aggregates across equally weighted age, sex and AUDIT score categories, whereas observed data may be skewed to particular demographic groups ",
-               locations = cells_title(groups = c("title"))) %>% 
+               locations = cells_title(groups = c("title"))) %>%
   gtsave("appxtab_drinkless.pdf")
 
 
-# aggregate by sex, age (16-24, 25+) and AUDIT (0-15, 16+) 
+# aggregate by sex, age (16-24, 25+) and AUDIT (0-15, 16+)
 
-nd1 <- newdat.merged %>% 
-  ungroup() %>% 
+nd1 <- newdat.merged %>%
+  ungroup() %>%
   filter(age < 25,
-         AUDIT < 16) %>% 
-  group_by(sex,message,country) %>% 
+         AUDIT < 16) %>%
+  group_by(sex,message,country) %>%
   summarize(Mean_new = mean(new),
-            ll_new = quantile(new,.15), 
+            ll_new = quantile(new,.15),
             hh_new = quantile(new,.85),
             Mean_believe = mean(believe),
-            ll_believe = quantile(believe,.15), 
+            ll_believe = quantile(believe,.15),
             hh_believe = quantile(believe,.85),
             Mean_relevant = mean(relevant),
-            ll_relevant = quantile(relevant,.15), 
+            ll_relevant = quantile(relevant,.15),
             hh_relevant = quantile(relevant,.85),
             Mean_drinkless = mean(drinkless),
-            ll_drinkless = quantile(drinkless,.15), 
-            hh_drinkless = quantile(drinkless,.85)) %>% 
+            ll_drinkless = quantile(drinkless,.15),
+            hh_drinkless = quantile(drinkless,.85)) %>%
   mutate(agegrp = c("16-24"),
          AUDITgrp = c("AUDIT 1-15"))
 
-nd2 <- newdat.merged %>% 
-  ungroup() %>% 
+nd2 <- newdat.merged %>%
+  ungroup() %>%
   filter(age < 25,
-         AUDIT > 15) %>% 
-  group_by(sex,message,country) %>% 
+         AUDIT > 15) %>%
+  group_by(sex,message,country) %>%
   summarize(Mean_new = mean(new),
-            ll_new = quantile(new,.15), 
+            ll_new = quantile(new,.15),
             hh_new = quantile(new,.85),
             Mean_believe = mean(believe),
-            ll_believe = quantile(believe,.15), 
+            ll_believe = quantile(believe,.15),
             hh_believe = quantile(believe,.85),
             Mean_relevant = mean(relevant),
-            ll_relevant = quantile(relevant,.15), 
+            ll_relevant = quantile(relevant,.15),
             hh_relevant = quantile(relevant,.85),
             Mean_drinkless = mean(drinkless),
-            ll_drinkless = quantile(drinkless,.15), 
-            hh_drinkless = quantile(drinkless,.85)) %>% 
+            ll_drinkless = quantile(drinkless,.15),
+            hh_drinkless = quantile(drinkless,.85)) %>%
   mutate(agegrp = c("16-24"),
          AUDITgrp = c("AUDIT 16+"))
 
-nd3 <- newdat.merged %>% 
-  ungroup() %>% 
+nd3 <- newdat.merged %>%
+  ungroup() %>%
   filter(age > 24,
-         AUDIT < 16) %>% 
-  group_by(sex,message,country) %>% 
+         AUDIT < 16) %>%
+  group_by(sex,message,country) %>%
   summarize(Mean_new = mean(new),
-            ll_new = quantile(new,.15), 
+            ll_new = quantile(new,.15),
             hh_new = quantile(new,.85),
             Mean_believe = mean(believe),
-            ll_believe = quantile(believe,.15), 
+            ll_believe = quantile(believe,.15),
             hh_believe = quantile(believe,.85),
             Mean_relevant = mean(relevant),
-            ll_relevant = quantile(relevant,.15), 
+            ll_relevant = quantile(relevant,.15),
             hh_relevant = quantile(relevant,.85),
             Mean_drinkless = mean(drinkless),
-            ll_drinkless = quantile(drinkless,.15), 
-            hh_drinkless = quantile(drinkless,.85)) %>% 
+            ll_drinkless = quantile(drinkless,.15),
+            hh_drinkless = quantile(drinkless,.85)) %>%
   mutate(agegrp = c("25+"),
          AUDITgrp = c("AUDIT 1-15"))
 
-nd4 <- newdat.merged %>% 
-  ungroup() %>% 
+nd4 <- newdat.merged %>%
+  ungroup() %>%
   filter(age > 24,
-         AUDIT > 15) %>% 
-  group_by(sex,message,country) %>% 
+         AUDIT > 15) %>%
+  group_by(sex,message,country) %>%
   summarize(Mean_new = mean(new),
-            ll_new = quantile(new,.15), 
+            ll_new = quantile(new,.15),
             hh_new = quantile(new,.85),
             Mean_believe = mean(believe),
-            ll_believe = quantile(believe,.15), 
+            ll_believe = quantile(believe,.15),
             hh_believe = quantile(believe,.85),
             Mean_relevant = mean(relevant),
-            ll_relevant = quantile(relevant,.15), 
+            ll_relevant = quantile(relevant,.15),
             hh_relevant = quantile(relevant,.85),
             Mean_drinkless = mean(drinkless),
-            ll_drinkless = quantile(drinkless,.15), 
-            hh_drinkless = quantile(drinkless,.85)) %>% 
+            ll_drinkless = quantile(drinkless,.15),
+            hh_drinkless = quantile(drinkless,.85)) %>%
   mutate(agegrp = c("25+"),
          AUDITgrp = c("AUDIT 16+"))
 
@@ -1006,17 +1005,17 @@ nd.merged <- rbind(nd1,nd2,nd3,nd4)
 glimpse(nd.merged)
 
 ndm <- nd.merged %>%
-  ungroup() %>% 
+  ungroup() %>%
   mutate(agegrp = as.factor(agegrp),
          AUDITgrp = as.factor(AUDITgrp),
-         sex = fct_recode(sex, "male" = "1", "female" = "0")) %>% 
-  unite("sexage", sex, agegrp, sep = "_") %>% 
+         sex = fct_recode(sex, "male" = "1", "female" = "0")) %>%
+  unite("sexage", sex, agegrp, sep = "_") %>%
   mutate(sexage = as.factor(sexage),
          sexage = fct_recode(sexage, "Females aged 16-24" = "female_16-24",
                              "Females aged 25+" = "female_25+",
                              "Males aged 16-24" = "male_16-24",
                              "Males aged 25+" = "male_25+"),
-         sexage = fct_relevel(sexage, 
+         sexage = fct_relevel(sexage,
                               "Females aged 16-24",
                               "Males aged 16-24",
                               "Females aged 25+",
@@ -1036,7 +1035,7 @@ ndm
 colourCount = length(unique(ndm$country))
 getPalette = colorRampPalette(brewer.pal(29, "Dark2"))
 
-plotndm1 <- ggplot(data = ndm, 
+plotndm1 <- ggplot(data = ndm,
                    aes(x = country,
                        y = Mean_new,
                        text = paste(country,
@@ -1046,7 +1045,7 @@ plotndm1 <- ggplot(data = ndm,
                                     "<br>Pr(Yes) = ",
                                     round(Mean_new,2)))) +
   facet_grid(message ~ sexage) +
-  geom_point(data = ndm, 
+  geom_point(data = ndm,
              aes(x = fct_reorder(country, Mean_new),
                  y = Mean_new,
                  colour = fct_reorder(country, Mean_new),
@@ -1066,9 +1065,9 @@ plotndm1 <- ggplot(data = ndm,
         panel.grid.minor.x = element_blank(),
         panel.grid.minor.y = element_blank(),
         panel.grid.major.y = element_line(colour = "grey70"),
-        strip.background = element_rect(colour = "grey50", 
+        strip.background = element_rect(colour = "grey50",
                                         fill = "grey50"),
-        strip.text = element_text(colour = "white", size = 10, 
+        strip.text = element_text(colour = "white", size = 10,
                                   face = "bold"),
         legend.title = element_text(color = "black",
                                     face = "bold",
@@ -1076,7 +1075,7 @@ plotndm1 <- ggplot(data = ndm,
         legend.spacing = unit(1, "cm"),
         legend.position = "right") +
   guides(colour = guide_legend(override.aes = list(size = 3),
-                               title = "Country (low to high\n predicted probability)", 
+                               title = "Country (low to high\n predicted probability)",
                                keyheight = 0.9,
                                ncol = 1,
                                order = 2),
@@ -1086,7 +1085,7 @@ plotndm1 <- ggplot(data = ndm,
                               reverse = TRUE,
                               order = 1))
 
-plotndm2 <- ggplot(data = ndm, 
+plotndm2 <- ggplot(data = ndm,
                    aes(x = country,
                        y = Mean_believe,
                        text = paste(country,
@@ -1096,7 +1095,7 @@ plotndm2 <- ggplot(data = ndm,
                                     "<br>Pr(Yes) = ",
                                     round(Mean_believe,2)))) +
   facet_grid(message ~ sexage) +
-  geom_point(data = ndm, 
+  geom_point(data = ndm,
              aes(x = fct_reorder(country, Mean_believe),
                  y = Mean_believe,
                  colour = fct_reorder(country, Mean_believe),
@@ -1116,9 +1115,9 @@ plotndm2 <- ggplot(data = ndm,
         panel.grid.minor.x = element_blank(),
         panel.grid.minor.y = element_blank(),
         panel.grid.major.y = element_line(colour = "grey70"),
-        strip.background = element_rect(colour = "grey50", 
+        strip.background = element_rect(colour = "grey50",
                                         fill = "grey50"),
-        strip.text = element_text(colour = "white", size = 10, 
+        strip.text = element_text(colour = "white", size = 10,
                                   face = "bold"),
         legend.title = element_text(color = "black",
                                     face = "bold",
@@ -1126,7 +1125,7 @@ plotndm2 <- ggplot(data = ndm,
         legend.spacing = unit(1, "cm"),
         legend.position = "right") +
   guides(colour = guide_legend(override.aes = list(size = 3),
-                               title = "Country (low to high\n predicted probability)", 
+                               title = "Country (low to high\n predicted probability)",
                                keyheight = 0.9,
                                ncol = 1,
                                order = 2),
@@ -1137,7 +1136,7 @@ plotndm2 <- ggplot(data = ndm,
                               order = 1))
 
 
-plotndm3 <- ggplot(data = ndm, 
+plotndm3 <- ggplot(data = ndm,
                    aes(x = country,
                        y = Mean_relevant,
                        text = paste(country,
@@ -1147,7 +1146,7 @@ plotndm3 <- ggplot(data = ndm,
                                     "<br>Pr(Yes) = ",
                                     round(Mean_relevant,2)))) +
   facet_grid(message ~ sexage) +
-  geom_point(data = ndm, 
+  geom_point(data = ndm,
              aes(x = fct_reorder(country, Mean_relevant),
                  y = Mean_relevant,
                  colour = fct_reorder(country, Mean_relevant),
@@ -1167,9 +1166,9 @@ plotndm3 <- ggplot(data = ndm,
         panel.grid.minor.x = element_blank(),
         panel.grid.minor.y = element_blank(),
         panel.grid.major.y = element_line(colour = "grey70"),
-        strip.background = element_rect(colour = "grey50", 
+        strip.background = element_rect(colour = "grey50",
                                         fill = "grey50"),
-        strip.text = element_text(colour = "white", size = 10, 
+        strip.text = element_text(colour = "white", size = 10,
                                   face = "bold"),
         legend.title = element_text(color = "black",
                                     face = "bold",
@@ -1177,7 +1176,7 @@ plotndm3 <- ggplot(data = ndm,
         legend.spacing = unit(1, "cm"),
         legend.position = "right") +
   guides(colour = guide_legend(override.aes = list(size = 3),
-                               title = "Country (low to high\n predicted probability)", 
+                               title = "Country (low to high\n predicted probability)",
                                keyheight = 0.9,
                                ncol = 1,
                                order = 2),
@@ -1188,7 +1187,7 @@ plotndm3 <- ggplot(data = ndm,
                               order = 1))
 
 
-plotndm4 <- ggplot(data = ndm, 
+plotndm4 <- ggplot(data = ndm,
                    aes(x = country,
                        y = Mean_drinkless,
                        text = paste(country,
@@ -1198,7 +1197,7 @@ plotndm4 <- ggplot(data = ndm,
                                     "<br>Pr(Yes) = ",
                                     round(Mean_drinkless,2)))) +
   facet_grid(message ~ sexage) +
-  geom_point(data = ndm, 
+  geom_point(data = ndm,
              aes(x = fct_reorder(country, Mean_drinkless),
                  y = Mean_drinkless,
                  colour = fct_reorder(country, Mean_drinkless),
@@ -1218,9 +1217,9 @@ plotndm4 <- ggplot(data = ndm,
         panel.grid.minor.x = element_blank(),
         panel.grid.minor.y = element_blank(),
         panel.grid.major.y = element_line(colour = "grey70"),
-        strip.background = element_rect(colour = "grey50", 
+        strip.background = element_rect(colour = "grey50",
                                         fill = "grey50"),
-        strip.text = element_text(colour = "white", size = 10, 
+        strip.text = element_text(colour = "white", size = 10,
                                   face = "bold"),
         legend.title = element_text(color = "black",
                                     face = "bold",
@@ -1228,7 +1227,7 @@ plotndm4 <- ggplot(data = ndm,
         legend.spacing = unit(1, "cm"),
         legend.position = "right") +
   guides(colour = guide_legend(override.aes = list(size = 3),
-                               title = "Country (low to high\n predicted probability)", 
+                               title = "Country (low to high\n predicted probability)",
                                keyheight = 0.9,
                                ncol = 1,
                                order = 2),
@@ -1262,13 +1261,13 @@ y <- list(
 
 # plots to plotly - new
 subp <- plotly::ggplotly(plotndm1, tooltip = c("text")) %>%
-  plotly::hide_legend()  %>% 
+  plotly::hide_legend()  %>%
   plotly::layout(margin = m)
 
 str(subp[['x']][['layout']][['annotations']][[1]][['x']])  # check position of y-axis label and then change it:
 subp[['x']][['layout']][['annotations']][[1]][['x']] <- -0.07
 
-subp <- subp %>% 
+subp <- subp %>%
   layout(
     images = list(
       list(
@@ -1287,13 +1286,13 @@ htmlwidgets::saveWidget(subp, "plot_new.html")
 
 # plots to plotly - believe
 subp <- plotly::ggplotly(plotndm2, tooltip = c("text")) %>%
-  plotly::hide_legend()  %>% 
+  plotly::hide_legend()  %>%
   plotly::layout(margin = m)
 
 str(subp[['x']][['layout']][['annotations']][[1]][['x']])  # check position of y-axis label and then change it:
 subp[['x']][['layout']][['annotations']][[1]][['x']] <- -0.07
 
-subp <- subp %>% 
+subp <- subp %>%
   layout(
     images = list(
       list(
@@ -1312,13 +1311,13 @@ htmlwidgets::saveWidget(subp, "plot_believe.html")
 
 # plots to plotly - relevant
 subp <- plotly::ggplotly(plotndm3, tooltip = c("text")) %>%
-  plotly::hide_legend()  %>% 
+  plotly::hide_legend()  %>%
   plotly::layout(margin = m)
 
 str(subp[['x']][['layout']][['annotations']][[1]][['x']])  # check position of y-axis label and then change it:
 subp[['x']][['layout']][['annotations']][[1]][['x']] <- -0.07
 
-subp <- subp %>% 
+subp <- subp %>%
   layout(
     images = list(
       list(
@@ -1337,13 +1336,13 @@ htmlwidgets::saveWidget(subp, "plot_relevant.html")
 
 # plots to plotly - drinkless
 subp <- plotly::ggplotly(plotndm4, tooltip = c("text")) %>%
-  plotly::hide_legend()  %>% 
+  plotly::hide_legend()  %>%
   plotly::layout(margin = m)
 
 str(subp[['x']][['layout']][['annotations']][[1]][['x']])  # check position of y-axis label and then change it:
 subp[['x']][['layout']][['annotations']][[1]][['x']] <- -0.07
 
-subp <- subp %>% 
+subp <- subp %>%
   layout(
     images = list(
       list(
@@ -1376,7 +1375,7 @@ renv::snapshot()
 
 ######################### demo plots for revision ###################
 
-plotndm8 <- ggplot(data = ndm, 
+plotndm8 <- ggplot(data = ndm,
                    aes(x = country,
                        y = Mean_drinkless,
                        text = paste(country,
@@ -1386,7 +1385,7 @@ plotndm8 <- ggplot(data = ndm,
                                     "<br>Pr(Yes) = ",
                                     round(Mean_drinkless,2)))) +
   facet_grid(message ~ sexage) +
-  geom_point(data = ndm, 
+  geom_point(data = ndm,
              aes(x = fct_reorder(country, Mean_drinkless),
                  y = Mean_drinkless,
                  colour = fct_reorder(country, Mean_drinkless),
@@ -1410,9 +1409,9 @@ plotndm8 <- ggplot(data = ndm,
         panel.grid.minor.x = element_blank(),
         panel.grid.minor.y = element_blank(),
         panel.grid.major.y = element_line(colour = "grey70"),
-        strip.background = element_rect(colour = "grey50", 
+        strip.background = element_rect(colour = "grey50",
                                         fill = "grey50"),
-        strip.text = element_text(colour = "white", size = 10, 
+        strip.text = element_text(colour = "white", size = 10,
                                   face = "bold"),
         legend.title = element_text(color = "black",
                                     face = "bold",
@@ -1420,7 +1419,7 @@ plotndm8 <- ggplot(data = ndm,
         legend.spacing = unit(1, "cm"),
         legend.position = "right") +
   guides(colour = guide_legend(override.aes = list(size = 4),
-                               title = "Country (low to high\n predicted probability)", 
+                               title = "Country (low to high\n predicted probability)",
                                keyheight = 0.9,
                                ncol = 1,
                                order = 2),
@@ -1431,19 +1430,3 @@ plotndm8 <- ggplot(data = ndm,
                               order = 1))
 
 plotndm8
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
