@@ -29,6 +29,11 @@ library(officer)
 library(flextable)
 library(tidybayes)
 library(gt)
+library(dplyr)
+library(grid)
+library(gridExtra)
+library(cowplot)
+library(ggplotify)
 
 
 # get data
@@ -36,7 +41,7 @@ library(gt)
 #data8a <- readRDS("GDS_2018_data8a.rds")
 #data9 <- readRDS("GDS_2018_data9.rds")
 
-restab1 <- data9 %>%
+restab1 <- data8 %>%
   group_by(Final_country,message) %>%
   select(Final_country,message,new,believe,relevant,drinkless) %>%
   summarise(mean_new = mean(new),
@@ -1085,6 +1090,11 @@ plotndm1 <- ggplot(data = ndm,
                               reverse = TRUE,
                               order = 1))
 
+png("plots/legend_new.png", res = 300, width = 540, height = 2100)  
+as.ggplot(get_legend(plotndm1))
+dev.off()       
+
+
 plotndm2 <- ggplot(data = ndm,
                    aes(x = country,
                        y = Mean_believe,
@@ -1135,6 +1145,9 @@ plotndm2 <- ggplot(data = ndm,
                               reverse = TRUE,
                               order = 1))
 
+png("plots/legend_believe.png", res = 300, width = 540, height = 2100)  
+as.ggplot(get_legend(plotndm2))
+dev.off()   
 
 plotndm3 <- ggplot(data = ndm,
                    aes(x = country,
@@ -1186,6 +1199,9 @@ plotndm3 <- ggplot(data = ndm,
                               reverse = TRUE,
                               order = 1))
 
+png("plots/legend_relevant.png", res = 300, width = 540, height = 2100)  
+as.ggplot(get_legend(plotndm3))
+dev.off()   
 
 plotndm4 <- ggplot(data = ndm,
                    aes(x = country,
@@ -1237,15 +1253,21 @@ plotndm4 <- ggplot(data = ndm,
                               reverse = TRUE,
                               order = 1))
 
+png("plots/legend_drinkless.png", res = 300, width = 540, height = 2100)  
+as.ggplot(get_legend(plotndm4))
+dev.off()   
 
 
-
-dev.off()
 plotndm1
 plotndm2
 plotndm3
 plotndm4
 
+
+
+#### plotly -----------------
+
+# first upload legend files to https://github.com/davidfoxcroft/publicimages
 
 m <- list(
   l = 90,
@@ -1262,102 +1284,114 @@ y <- list(
 # plots to plotly - new
 subp <- plotly::ggplotly(plotndm1, tooltip = c("text")) %>%
   plotly::hide_legend()  %>%
-  plotly::layout(margin = m)
+  plotly::layout(margin = m, 
+                 title = list(text = 'Figure: Predicted probability of awareness of the information on the message labels for respondents in each country and Audit score group, by age and sex', 
+                              xref = 'x', yref = 'y', x = 0.06, y = 0.02),
+                 font=list(size=12))
 
 str(subp[['x']][['layout']][['annotations']][[1]][['x']])  # check position of y-axis label and then change it:
-subp[['x']][['layout']][['annotations']][[1]][['x']] <- -0.07
+subp[['x']][['layout']][['annotations']][[1]][['x']] <- -0.015
 
 subp <- subp %>%
   layout(
     images = list(
       list(
-        source =  "https://raw.githubusercontent.com/davidfoxcroft/publicimages/master/plotly_legend_new.png",
+        source = "https://raw.githubusercontent.com/davidfoxcroft/publicimages/master/legend_new.png",
         xref = "paper",
         yref = "paper",
-        x = 1.03,
-        y = 1.02,
+        x = 1.02,
+        y = 1.03,
         sizex = 1,
         sizey = 1
       )
     )
   )
 #subp
-htmlwidgets::saveWidget(subp, "plot_new.html")
+htmlwidgets::saveWidget(subp, "plots/plot_new.html")
 
 # plots to plotly - believe
 subp <- plotly::ggplotly(plotndm2, tooltip = c("text")) %>%
   plotly::hide_legend()  %>%
-  plotly::layout(margin = m)
+  plotly::layout(margin = m, 
+                 title = list(text = 'Figure: Predicted probability for each country and Audit score group, of whether the information on the message labels is believable, by age and sex', 
+                              xref = 'x', yref = 'y', x = 0.06, y = 0.02),
+                 font=list(size=12))
 
 str(subp[['x']][['layout']][['annotations']][[1]][['x']])  # check position of y-axis label and then change it:
-subp[['x']][['layout']][['annotations']][[1]][['x']] <- -0.07
+subp[['x']][['layout']][['annotations']][[1]][['x']] <- -0.015
 
 subp <- subp %>%
   layout(
     images = list(
       list(
-        source =  "https://raw.githubusercontent.com/davidfoxcroft/publicimages/master/plotly_legend_believe.png",
+        source =  "https://raw.githubusercontent.com/davidfoxcroft/publicimages/master/legend_believe.png",
         xref = "paper",
         yref = "paper",
-        x = 1.03,
-        y = 1.02,
+        x = 1.02,
+        y = 1.03,
         sizex = 1,
         sizey = 1
       )
     )
   )
 #subp
-htmlwidgets::saveWidget(subp, "plot_believe.html")
+htmlwidgets::saveWidget(subp, "plots/plot_believe.html")
+
 
 # plots to plotly - relevant
 subp <- plotly::ggplotly(plotndm3, tooltip = c("text")) %>%
   plotly::hide_legend()  %>%
-  plotly::layout(margin = m)
+  plotly::layout(margin = m, 
+                 title = list(text = 'Figure: Predicted probability of whether the information on the message labels is relevant to the respondents in each country and Audit score group, by age and sex', 
+                              xref = 'x', yref = 'y', x = 0.06, y = 0.02),
+                 font=list(size=12))
 
 str(subp[['x']][['layout']][['annotations']][[1]][['x']])  # check position of y-axis label and then change it:
-subp[['x']][['layout']][['annotations']][[1]][['x']] <- -0.07
+subp[['x']][['layout']][['annotations']][[1]][['x']] <- -0.015
 
 subp <- subp %>%
   layout(
     images = list(
       list(
-        source =  "https://raw.githubusercontent.com/davidfoxcroft/publicimages/master/plotly_legend_relevant.png",
+        source =  "https://raw.githubusercontent.com/davidfoxcroft/publicimages/master/legend_relevant.png",
         xref = "paper",
         yref = "paper",
-        x = 1.03,
-        y = 1.02,
+        x = 1.02,
+        y = 1.03,
         sizex = 1,
         sizey = 1
       )
     )
   )
 #subp
-htmlwidgets::saveWidget(subp, "plot_relevant.html")
+htmlwidgets::saveWidget(subp, "plots/plot_relevant.html")
 
 # plots to plotly - drinkless
 subp <- plotly::ggplotly(plotndm4, tooltip = c("text")) %>%
   plotly::hide_legend()  %>%
-  plotly::layout(margin = m)
-
+  plotly::layout(margin = m, 
+                 title = list(text = 'Figure: Predicted probability for whether the information on the message labels would make respondents in each country and Audit score group consider drinking less, by age and sex', 
+                              xref = 'x', yref = 'y', x = 0.06, y = 0.02),
+                 font=list(size=12))
 str(subp[['x']][['layout']][['annotations']][[1]][['x']])  # check position of y-axis label and then change it:
-subp[['x']][['layout']][['annotations']][[1]][['x']] <- -0.07
+subp[['x']][['layout']][['annotations']][[1]][['x']] <- -0.015
 
 subp <- subp %>%
   layout(
     images = list(
       list(
-        source =  "https://raw.githubusercontent.com/davidfoxcroft/publicimages/master/plotly_legend_drinkless.png",
+        source =  "https://raw.githubusercontent.com/davidfoxcroft/publicimages/master/legend_drinkless.png",
         xref = "paper",
         yref = "paper",
-        x = 1.03,
-        y = 1.02,
+        x = 1.02,
+        y = 1.03,
         sizex = 1,
         sizey = 1
       )
     )
   )
 #subp
-htmlwidgets::saveWidget(subp, "plot_drinkless.html")
+htmlwidgets::saveWidget(subp, "plots/plot_drinkless.html")
 
 
 
